@@ -7,10 +7,7 @@ context. Read this first, then `01-architecture-spec.md` and
 
 ## TL;DR
 
-The broker (MCP server routing Claude workflow agents to local coding CLIs) is
-functional. We are mid-migration from plain `.mjs` to **TypeScript**, and mid-way
-through introducing a **declarative provider-capability contract**. Tests are
-green at every step.
+The broker (MCP server routing Claude workflow agents to local coding CLIs) is fully functional, written in strict **TypeScript**, and enforces a **declarative provider-capability contract**. All tests are green.
 
 - Run tests: `npm test` (`node --import tsx --test`)
 - Type-check: `npm run typecheck` (`tsc --noEmit`)
@@ -21,43 +18,27 @@ green at every step.
 
 ## Architectural direction (decided)
 
-Stay in JavaScript/TypeScript — **do not rewrite in Go/Rust**. The workload is
-I/O / subprocess bound (dominated by LLM latency), so a systems language buys no
-meaningful efficiency, while leaving the JS ecosystem (MCP SDK, the brokered
-CLIs, the agent markdown format) costs a lot. The real wins:
+JavaScript/TypeScript is the standard for this project. The workload is I/O and subprocess bound (dominated by LLM latency), meaning a systems language is not necessary, while maintaining JS ecosystem compatibility (MCP SDK, Codex plugins) is crucial. Key elements implemented:
 
-1. **TypeScript** — the bugs we hit were all shape/contract bugs; types are the
-   architecture's documentation and enforcement. (In progress.)
-2. **Declarative provider capabilities** — model what each CLI can do as *data*
-   so the broker enforces it uniformly and fails fast, instead of `if`s copied
-   across adapters (the asymmetry class of bug). **Done** — see "Capability
-   enforcement (Wave 3)" below.
-3. **Freeze the wire contract** (request + envelope JSON) so the engine language
-   stays a deferred, reversible decision. Only consider Rust/Go if this becomes
-   a high-throughput multi-tenant service or grows CPU-bound work.
+1. **TypeScript** — All source files have been fully migrated to TypeScript with strict type checking.
+2. **Declarative provider capabilities** — CLI capabilities are modeled as data, allowing the broker to enforce them uniformly and fail fast before executing subprocesses.
+3. **Wire contract** — The JSON request/response envelope is frozen to ensure compatibility across clients.
 
 ## TypeScript migration — current state
 
-Tooling is in place (`tsx` runs `.ts` + `.mjs` mixed; `tsconfig.json` with
-`strict`, `moduleResolution: bundler`, `noEmit`). Node is 20.19.4 (no native type
-stripping), so `tsx` is required at runtime — that is why `mcp`/`smoke` scripts
-call `tsx`.
+The codebase is fully written in strict TypeScript. Node 20.19.4 is supported via `tsx` execution wrappers at runtime for scripts and MCP server startup.
 
 Migrated to `.ts` (all waves complete):
 
-- `src/types.ts` (new) — domain types: `AgentInput`, `ResolvedRequest`,
-  `Envelope` (`SuccessEnvelope | ErrorEnvelope`), `Route`, `BridgeConfig`.
-- `src/adapters/contract.ts` (new) — `ProviderCapabilities`, `ProviderAdapter`
-  (`{ capabilities, run }`), `RunProcessFn`, `requiredCapabilities(request)`.
-  Wired (Wave 3): imported by `run-agent.ts` for enforcement.
+- `src/types.ts` — domain types: `AgentInput`, `ResolvedRequest`, `Envelope`, `Route`, `BridgeConfig`.
+- `src/adapters/contract.ts` — `ProviderCapabilities`, `ProviderAdapter`, `requiredCapabilities(request)`.
 - `src/broker/`: `routing.ts`, `errors.ts`, `schema-validation.ts`, `run-agent.ts`
 - `src/claude/`: `agent-loader.ts`, `prompt-assembler.ts`
 - `src/config/load-config.ts`
 - `src/mcp/create-server.ts`, `src/mcp-server.ts` (entry), `src/index.ts`
-- `src/adapters/`: `common.ts`, `process-runner.ts`, `claude.ts`, `codex.ts`,
-  `gemini.ts`, `opencode.ts`, `agy.ts`, `registry.ts` (Wave 4 — done)
+- `src/adapters/`: `common.ts`, `process-runner.ts`, `claude.ts`, `codex.ts`, `gemini.ts`, `opencode.ts`, `agy.ts`, `registry.ts`
 
-Still `.mjs`: none — migration complete.
+There are no remaining `.mjs` files in `src/`. All imports use explicit extensions, typecheck is clean with no bypasses.
 
 Import convention during migration: migrated files are referenced with an
 explicit `.ts` extension (allowed by `allowImportingTsExtensions`); unmigrated
