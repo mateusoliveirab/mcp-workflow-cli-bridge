@@ -1,11 +1,11 @@
 ---
 name: workflow-cli-bridge
-description: Use when designing, testing, or integrating the Claude Workflow CLI Bridge MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude. Trigger for "workflow bridge", "Claude workflow CLI bridge", "code_cli_bridge", adapter routes, provider adapters, or bridge MCP setup.
+description: Use when designing, testing, or integrating the MCP Workflow CLI Bridge MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude. Trigger for "workflow bridge", "MCP workflow CLI bridge", "code_cli_bridge", adapter routes, provider adapters, or bridge MCP setup.
 ---
 
 # Workflow CLI Bridge
 
-Use this skill when working on the Claude Workflow CLI Bridge project.
+Use this skill when working on the MCP Workflow CLI Bridge project.
 
 ## Core Architecture
 

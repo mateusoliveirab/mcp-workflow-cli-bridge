@@ -1,6 +1,6 @@
 # Documentation Map
 
-Welcome to the documentation for the Claude Workflow CLI Bridge. This folder organizes technical specs, design logs, and reference guides.
+Welcome to the documentation for the MCP Workflow CLI Bridge. This folder organizes technical specs, design logs, and reference guides.
 
 ---
 

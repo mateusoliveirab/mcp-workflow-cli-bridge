@@ -1,4 +1,4 @@
-# Contributing to Claude Workflow CLI Bridge
+# Contributing to MCP Workflow CLI Bridge
 
 Thank you for your interest in contributing! This document provides instructions for setting up and working on this project.
 

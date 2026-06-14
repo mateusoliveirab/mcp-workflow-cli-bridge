@@ -1,7 +1,7 @@
 {
   "name": "mcp-workflow-cli-bridge-local",
   "interface": {
-    "displayName": "Claude Workflow CLI Bridge Local"
+    "displayName": "MCP Workflow CLI Bridge Local"
   },
   "plugins": [
     {

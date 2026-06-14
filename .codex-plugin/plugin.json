@@ -21,9 +21,9 @@
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Claude Workflow CLI Bridge",
+    "displayName": "MCP Workflow CLI Bridge",
     "shortDescription": "Route Claude workflows to local coding CLIs",
-    "longDescription": "Use Claude Workflow CLI Bridge to design, test, and operate a local MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude through validated provider adapters.",
+    "longDescription": "Use MCP Workflow CLI Bridge to design, test, and operate a local MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude through validated provider adapters.",
     "developerName": "Mateus Borges",
     "category": "Developer Tools",
     "capabilities": [

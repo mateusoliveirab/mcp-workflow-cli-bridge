@@ -1,4 +1,4 @@
-# Claude Workflow CLI Bridge
+# MCP Workflow CLI Bridge
 
 ![tests](https://img.shields.io/badge/tests-50%20passing-brightgreen)
 ![node](https://img.shields.io/badge/node-%3E%3D20-blue)
@@ -37,7 +37,7 @@ It provides capability-based routing, CLI availability discovery, strict JSON Sc
 
 Claude Code Dynamic Workflows (`.claude/workflows/*.js`) and other MCP clients often need to delegate sub-tasks to specialized CLI engines—e.g., Codex for structured output with image analysis, or OpenCode for lightweight generation—without hardcoding provider-specific APIs or rewriting execution logic for each different client environment.
 
-The **Claude Workflow CLI Bridge** solves this by abstracting local CLI tool execution behind a standardized MCP interface.
+The **MCP Workflow CLI Bridge** solves this by abstracting local CLI tool execution behind a standardized MCP interface.
 
 ---
 
