@@ -35,8 +35,8 @@ node -e "import('./src/mcp/create-server.ts').then(({ createMcpServer }) => cons
 
 ## Important Files
 
-- `docs/01-architecture-spec.md`: architecture direction.
-- `docs/03-gotchas-and-non-goals.md`: constraints and paths to avoid.
+- `docs/architecture.md`: architecture direction.
+- `docs/gotchas.md`: constraints and paths to avoid.
 - `src/broker/run-agent.ts`: broker entry point.
 - `src/mcp/create-server.ts`: MCP tool registration.
 - `src/adapters/`: provider adapters.
