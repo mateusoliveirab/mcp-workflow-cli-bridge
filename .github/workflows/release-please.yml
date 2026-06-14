@@ -1,0 +1,28 @@
+name: release-please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: node
+
+      # Optional: You can add steps to publish to NPM or run extra scripts when a release is actually created
+      # - name: Publish to NPM
+      #   if: ${{ steps.release.outputs.release_created }}
+      #   run: |
+      #     npm ci
+      #     npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,54 @@
+{
+  "name": "claude-workflow-cli-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "skills",
+    ".mcp.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "description": "Architecture and future implementation for routing Claude Dynamic Workflow agent work to local coding CLIs.",
+  "author": "Mateus Borges",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mateusoliveirab/claude-workflow-cli-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge/issues"
+  },
+  "homepage": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge#readme",
+  "scripts": {
+    "check": "node --version && npm --version",
+    "docs": "find docs -maxdepth 1 -type f -name '*.md' -print | sort",
+    "live:validate": "tsx scripts/live-validations.mjs",
+    "live:validate:agy": "tsx scripts/live-validations.mjs agy",
+    "live:validate:claude": "tsx scripts/live-validations.mjs claude",
+    "live:validate:codex": "tsx scripts/live-validations.mjs codex",
+    "live:validate:gemini": "tsx scripts/live-validations.mjs gemini",
+    "live:validate:opencode": "tsx scripts/live-validations.mjs opencode",
+    "live:matrix": "tsx scripts/validate-matrix.mjs",
+    "mcp": "tsx src/mcp-server.ts",
+    "smoke": "tsx scripts/smoke.mjs",
+    "smoke:live": "tsx scripts/smoke.mjs --live",
+    "test": "node --import tsx --test",
+    "typecheck": "tsc --noEmit",
+    "validate:plugin": "python3 $HOME/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py ."
+  },
+  "engines": {
+    "node": ">=20.19.4"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "ajv": "^8.20.0",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  }
+}

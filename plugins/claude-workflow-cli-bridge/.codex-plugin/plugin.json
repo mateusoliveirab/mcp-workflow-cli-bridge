@@ -1,0 +1,45 @@
+{
+  "name": "claude-workflow-cli-bridge",
+  "version": "0.1.0+codex.20260614042836",
+  "description": "Route Claude Dynamic Workflow agent calls to local coding CLIs through a structured MCP bridge.",
+  "author": {
+    "name": "Mateus Borges",
+    "email": "mateusoliveirab2@gmail.com",
+    "url": "https://mateusborges.dev/"
+  },
+  "homepage": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
+  "repository": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
+  "license": "MIT",
+  "keywords": [
+    "claude",
+    "workflows",
+    "codex",
+    "mcp",
+    "cli-bridge",
+    "automation"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Claude Workflow CLI Bridge",
+    "shortDescription": "Route Claude workflows to local coding CLIs",
+    "longDescription": "Use Claude Workflow CLI Bridge to design, test, and operate a local MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude through validated provider adapters.",
+    "developerName": "Mateus Borges",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
+    "privacyPolicyURL": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
+    "termsOfServiceURL": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
+    "defaultPrompt": [
+      "Use the workflow CLI bridge in this repo",
+      "Plan a Claude workflow adapter route",
+      "Validate the bridge MCP server"
+    ],
+    "brandColor": "#2563EB",
+    "screenshots": []
+  }
+}

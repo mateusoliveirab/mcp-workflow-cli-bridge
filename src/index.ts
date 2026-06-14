@@ -1,0 +1,5 @@
+export { runAgent } from './broker/run-agent.ts'
+export { selectRoute } from './broker/routing.ts'
+export { parseClaudeAgent, loadClaudeAgent } from './claude/agent-loader.ts'
+export { assertStructuredOutput, validateStructuredOutput } from './broker/schema-validation.ts'
+export { BridgeError, ErrorCode } from './broker/errors.ts'

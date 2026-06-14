@@ -1,0 +1,50 @@
+{
+  "workflow": "generate-blog-image",
+  "defaultProvider": "codex",
+  "routes": [
+    {
+      "phase": "Extract",
+      "provider": "codex",
+      "sandbox": "read-only",
+      "timeoutMs": 180000
+    },
+    {
+      "agentType": "vastitas-creator",
+      "provider": "codex",
+      "sandbox": "read-only",
+      "timeoutMs": 240000
+    },
+    {
+      "phase": "Generate",
+      "provider": "codex",
+      "sandbox": "workspace-write",
+      "timeoutMs": 300000,
+      "envAllowlist": ["GEMINI_API_KEY"]
+    },
+    {
+      "agentType": "vastitas-critic",
+      "provider": "codex",
+      "sandbox": "read-only",
+      "requiresImages": true,
+      "timeoutMs": 240000
+    },
+    {
+      "phase": "Save",
+      "provider": "codex",
+      "sandbox": "workspace-write",
+      "timeoutMs": 180000
+    }
+  ],
+  "fallbacks": [
+    {
+      "when": "UNSUPPORTED_ATTACHMENT",
+      "provider": "claude"
+    },
+    {
+      "when": "SCHEMA_VALIDATION_FAILED",
+      "provider": "claude",
+      "maxFallbacks": 1
+    }
+  ]
+}
+

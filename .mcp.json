@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "claude-workflow-cli-bridge": {
+      "cwd": ".",
+      "command": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "./src/mcp-server.ts"
+      ]
+    }
+  }
+}
+
