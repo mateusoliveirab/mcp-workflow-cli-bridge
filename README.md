@@ -12,8 +12,6 @@ A local Model Context Protocol (MCP) server that acts as a dispatch hub, routing
 
 It provides capability-based routing, CLI availability discovery, strict JSON Schema output validation, automatic execution retries, and a normalized response envelope.
 
----
-
 ## Table of Contents
 
 - [Problem & Context](#problem--context)
@@ -33,15 +31,11 @@ It provides capability-based routing, CLI availability discovery, strict JSON Sc
 - [Contributing](#contributing)
 - [Changelog](#changelog)
 
----
-
 ## Problem & Context
 
 Claude Code Dynamic Workflows (`.claude/workflows/*.js`) and other MCP clients often need to delegate sub-tasks to specialized CLI engines—e.g., Codex for structured output with image analysis, or OpenCode for lightweight generation—without hardcoding provider-specific APIs or rewriting execution logic for each different client environment.
 
 The **MCP Workflow CLI Bridge** solves this by abstracting local CLI tool execution behind a standardized MCP interface.
-
----
 
 ## How It Works
 
@@ -61,8 +55,6 @@ Claude Dynamic Workflow (.claude/workflows/*.js)
 > - It does **not** port the Claude workflow runtime to other clients; `.claude/workflows/*.js` continues to run natively within Claude Code.
 > - It is **not** a persistent background daemon. One process is spawned per MCP session.
 
----
-
 ## Supported Providers & Capabilities
 
 Below is the capabilities matrix for the supported local CLI engines:
@@ -76,8 +68,6 @@ Below is the capabilities matrix for the supported local CLI engines:
 | **agy** | - | - | Yes | Yes |
 
 *If a call requires a capability the target provider does not support (e.g., passing a `schema` to `agy`), the broker rejects the request with a validation error before spawning any process.*
-
----
 
 ## Installation & Client Configuration
 
@@ -138,8 +128,6 @@ In Cursor/Windsurf, navigate to **Settings** -> **Features** -> **MCP** and add 
 - **Type**: `command`
 - **Command**: `node --import tsx /absolute/path/to/mcp-workflow-cli-bridge/src/mcp-server.ts`
 
----
-
 ## MCP Tools Spec
 
 ### `code_cli_bridge.providers`
@@ -181,8 +169,6 @@ Runs a task on the targeted provider.
 }
 ```
 
----
-
 ## Routing Configuration
 
 Create a `route-config.json` at your repository root to govern automatic tool execution routing:
@@ -198,8 +184,6 @@ Create a `route-config.json` at your repository root to govern automatic tool ex
 ```
 If no route configuration matches, the broker will auto-select a provider *only* if exactly one available CLI satisfies the requested capabilities.
 
----
-
 ## Security & Sandbox Guidelines
 
 > [!WARNING]
@@ -207,8 +191,6 @@ If no route configuration matches, the broker will auto-select a provider *only*
 > 1. Use providers supporting sandboxing (e.g., `codex`, `agy` with sandbox flags) when executing untrusted workflow instructions.
 > 2. Ensure sensitive files (`.env`, `credentials.json`) are excluded in your project configurations.
 > 3. Limit the permissions granted to local agent sessions.
-
----
 
 ## Development & Testing
 
@@ -230,13 +212,9 @@ npm run live:validate
 npm run live:validate:claude
 ```
 
----
-
 ## Contributing
 
 See our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on developer setup, coding style, and test validations.
-
----
 
 ## Changelog
 
