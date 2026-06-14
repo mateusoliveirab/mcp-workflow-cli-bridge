@@ -3,6 +3,7 @@ import { execSync } from 'node:child_process'
 import { runAgent } from '../../src/broker/run-agent.ts'
 import { defaultAdapters } from '../../src/adapters/registry.ts'
 import { resolveRole } from '../../src/workflows/roles.ts'
+import { newRunId, startRun, phaseStart, phaseEnd, endRun } from '../../src/workflows/run-state.ts'
 
 const configPath = new URL('../../src/workflows/workflows-config.json', import.meta.url)
 const config = JSON.parse(readFileSync(configPath, 'utf8'))
@@ -21,10 +22,17 @@ if (!userTask) {
 const results = {}
 const summaryPhases = []
 
+const workflowName = 'research-plan-implement'
+const phaseNames = patternConfig.phases.map(p => p.name)
+const runId = newRunId(workflowName)
+
 async function run() {
-  for (const phase of patternConfig.phases) {
+  startRun({ runId, workflow: workflowName, description: userTask, phases: phaseNames })
+  for (let phaseIndex = 0; phaseIndex < patternConfig.phases.length; phaseIndex++) {
+    const phase = patternConfig.phases[phaseIndex]
     const provider = resolveRole(phase.demand, defaultAdapters)
-    
+    phaseStart(runId, phase.name, phaseIndex, provider)
+
     let currentPrompt = ''
     if (phase.name === 'research') {
       currentPrompt = `Investigate and gather context for: ${userTask}`
@@ -68,6 +76,7 @@ async function run() {
       }
     }
     
+    phaseEnd(runId, phase.name, finalOk, result.durationMs)
     summaryPhases.push({
       name: phase.name,
       provider,
@@ -75,7 +84,9 @@ async function run() {
       durationMs: result.durationMs
     })
   }
-  
+
+  endRun(runId, summaryPhases.every(p => p.ok))
+
   const summary = {
     pattern: 'research-plan-implement',
     phases: summaryPhases,
@@ -86,6 +97,7 @@ async function run() {
 }
 
 run().catch(err => {
+  endRun(runId, false)
   console.error(err)
   process.exit(1)
 })

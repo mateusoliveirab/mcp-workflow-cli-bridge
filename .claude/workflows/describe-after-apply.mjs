@@ -3,6 +3,7 @@ import { execSync } from 'node:child_process'
 import { runAgent } from '../../src/broker/run-agent.ts'
 import { defaultAdapters } from '../../src/adapters/registry.ts'
 import { resolveRole } from '../../src/workflows/roles.ts'
+import { newRunId, startRun, phaseStart, phaseEnd, endRun } from '../../src/workflows/run-state.ts'
 
 const dryRun = process.argv.includes('--dry-run')
 const taskPrompt = process.argv[process.argv.length - 1]
@@ -15,8 +16,13 @@ const results = {}
 const summaryPhases = []
 let finalText = ''
 
-for (const phase of pattern.phases) {
+const runId = newRunId('describe-after-apply')
+startRun({ runId, workflow: 'describe-after-apply', description: taskPrompt, phases: pattern.phases.map(p => p.name) })
+
+for (let phaseIndex = 0; phaseIndex < pattern.phases.length; phaseIndex++) {
+  const phase = pattern.phases[phaseIndex]
   const provider = resolveRole(phase.demand, defaultAdapters)
+  phaseStart(runId, phase.name, phaseIndex, provider)
   let prompt = taskPrompt
 
   if (phase.name === 'describe') {
@@ -45,6 +51,7 @@ Please generate a PR/report description generated FROM the real changes (not a p
   })
 
   results[phase.name] = result
+  phaseEnd(runId, phase.name, result.ok, result.durationMs)
   summaryPhases.push({
     name: phase.name,
     provider: provider,
@@ -74,6 +81,8 @@ Please generate a PR/report description generated FROM the real changes (not a p
     finalText = result.text
   }
 }
+
+endRun(runId, summaryPhases.length === pattern.phases.length && summaryPhases.every(p => p.ok))
 
 console.log(JSON.stringify({
   pattern: 'describe-after-apply',

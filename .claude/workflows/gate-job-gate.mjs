@@ -3,6 +3,7 @@ import { execSync } from 'node:child_process'
 import { runAgent } from '../../src/broker/run-agent.ts'
 import { defaultAdapters } from '../../src/adapters/registry.ts'
 import { resolveRole } from '../../src/workflows/roles.ts'
+import { newRunId, startRun, phaseStart, phaseEnd, endRun } from '../../src/workflows/run-state.ts'
 
 const dryRun = process.argv.includes('--dry-run')
 const taskPrompt = process.argv[process.argv.length - 1]
@@ -13,14 +14,19 @@ const config = JSON.parse(configStr)
 const patternKey = 'gate-job-gate'
 const pattern = config[patternKey]
 
+const runId = newRunId(patternKey)
+
 async function run() {
   const results = {}
   const phasesSummary = []
+
+  startRun({ runId, workflow: patternKey, description: taskPrompt, phases: pattern.phases.map(p => p.name) })
 
   // Phase: pre
   const prePhase = pattern.phases.find(p => p.name === 'pre')
   const preProvider = resolveRole(prePhase.demand, defaultAdapters)
   const prePrompt = `Task: ${taskPrompt}\n\nAssert: ${prePhase.gate.assert}\nPlease evaluate the preconditions. If they fail, return ok: false.`
+  phaseStart(runId, prePhase.name, 0, preProvider)
 
   const preRes = await runAgent({
     workflow: patternKey,
@@ -34,6 +40,7 @@ async function run() {
   })
 
   results[prePhase.name] = preRes
+  phaseEnd(runId, prePhase.name, preRes.ok, preRes.durationMs)
   phasesSummary.push({ name: prePhase.name, provider: preProvider, ok: preRes.ok, durationMs: preRes.durationMs })
 
   if (!preRes.ok) {
@@ -51,6 +58,7 @@ async function run() {
 
   const jobProvider = resolveRole(jobPhase.demand, defaultAdapters)
   const jobPrompt = `Task: ${taskPrompt}\n\nContext from pre phase:\n${preRes.text}\n`
+  phaseStart(runId, jobPhase.name, 1, jobProvider)
 
   const jobRes = await runAgent({
     workflow: patternKey,
@@ -64,12 +72,14 @@ async function run() {
   })
 
   results[jobPhase.name] = jobRes
+  phaseEnd(runId, jobPhase.name, jobRes.ok, jobRes.durationMs)
   phasesSummary.push({ name: jobPhase.name, provider: jobProvider, ok: jobRes.ok, durationMs: jobRes.durationMs })
 
   // Phase: post
   const postPhase = pattern.phases.find(p => p.name === 'post')
   const postProvider = resolveRole(postPhase.demand, defaultAdapters)
   const postPrompt = `Task: ${taskPrompt}\n\nContext from job phase:\n${jobRes.text}\n`
+  phaseStart(runId, postPhase.name, 2, postProvider)
 
   const postRes = await runAgent({
     workflow: patternKey,
@@ -101,7 +111,10 @@ async function run() {
   }
 
   results[postPhase.name] = postRes
+  phaseEnd(runId, postPhase.name, verifyOk, postRes.durationMs)
   phasesSummary.push({ name: postPhase.name, provider: postProvider, ok: verifyOk, durationMs: postRes.durationMs })
+
+  endRun(runId, phasesSummary.every(p => p.ok))
 
   console.log(JSON.stringify({
     pattern: patternKey,
@@ -111,6 +124,7 @@ async function run() {
 }
 
 run().catch(err => {
+  endRun(runId, false)
   console.error(err.message)
   process.exit(1)
 })
