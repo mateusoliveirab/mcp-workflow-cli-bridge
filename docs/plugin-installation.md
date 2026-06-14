@@ -14,7 +14,7 @@ skills/workflow-cli-bridge/SKILL.md
 The plugin manifest exposes:
 
 - the `workflow-cli-bridge` skill
-- the `claude-workflow-cli-bridge` MCP server
+- the `mcp-workflow-cli-bridge` MCP server
 
 The local marketplace points to the current project root with:
 
@@ -35,8 +35,8 @@ plugin source.
 From anywhere:
 
 ```bash
-codex plugin marketplace add /path/to/claude-workflow-cli-bridge
-codex plugin add claude-workflow-cli-bridge@claude-workflow-cli-bridge-local
+codex plugin marketplace add /path/to/mcp-workflow-cli-bridge
+codex plugin add mcp-workflow-cli-bridge@mcp-workflow-cli-bridge-local
 ```
 
 Restart Codex or start a new thread after installation so skills and MCP tools
@@ -57,7 +57,7 @@ During local iteration, update the Codex plugin cachebuster before reinstalling:
 
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py .
-codex plugin add claude-workflow-cli-bridge@claude-workflow-cli-bridge-local
+codex plugin add mcp-workflow-cli-bridge@mcp-workflow-cli-bridge-local
 ```
 
 Then start a new Codex thread to pick up the new plugin metadata.

@@ -1,5 +1,5 @@
 {
-  "name": "claude-workflow-cli-bridge",
+  "name": "mcp-workflow-cli-bridge",
   "version": "0.1.0+codex.20260614042836",
   "description": "Route Claude Dynamic Workflow agent calls to local coding CLIs through a structured MCP bridge.",
   "author": {
@@ -7,8 +7,8 @@
     "email": "mateusoliveirab2@gmail.com",
     "url": "https://mateusborges.dev/"
   },
-  "homepage": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
-  "repository": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
+  "homepage": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
+  "repository": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
   "license": "MIT",
   "keywords": [
     "claude",
@@ -31,9 +31,9 @@
       "Read",
       "Write"
     ],
-    "websiteURL": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
-    "privacyPolicyURL": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
-    "termsOfServiceURL": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge",
+    "websiteURL": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
+    "privacyPolicyURL": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
+    "termsOfServiceURL": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
     "defaultPrompt": [
       "Use the workflow CLI bridge in this repo",
       "Plan a Claude workflow adapter route",

@@ -1,5 +1,5 @@
 {
-  "name": "claude-workflow-cli-bridge",
+  "name": "mcp-workflow-cli-bridge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,12 +14,12 @@
   "author": "Mateus Borges",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mateusoliveirab/claude-workflow-cli-bridge.git"
+    "url": "git+https://github.com/mateusoliveirab/mcp-workflow-cli-bridge.git"
   },
   "bugs": {
-    "url": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge/issues"
+    "url": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge/issues"
   },
-  "homepage": "https://github.com/mateusoliveirab/claude-workflow-cli-bridge#readme",
+  "homepage": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge#readme",
   "scripts": {
     "check": "node --version && npm --version",
     "docs": "find docs -maxdepth 1 -type f -name '*.md' -print | sort",

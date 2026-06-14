@@ -84,8 +84,8 @@ Below is the capabilities matrix for the supported local CLI engines:
 - Local installation of the CLI engines you plan to use (e.g., `claude`, `codex`, etc.) available on your system `PATH`.
 
 ```bash
-git clone https://github.com/mateusoliveirab/claude-workflow-cli-bridge.git
-cd claude-workflow-cli-bridge
+git clone https://github.com/mateusoliveirab/mcp-workflow-cli-bridge.git
+cd mcp-workflow-cli-bridge
 npm install
 ```
 
@@ -98,9 +98,9 @@ Add the server configuration to your `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "claude-workflow-cli-bridge": {
+    "mcp-workflow-cli-bridge": {
       "command": "node",
-      "args": ["--import", "tsx", "/absolute/path/to/claude-workflow-cli-bridge/src/mcp-server.ts"]
+      "args": ["--import", "tsx", "/absolute/path/to/mcp-workflow-cli-bridge/src/mcp-server.ts"]
     }
   }
 }
@@ -112,10 +112,10 @@ To use this inside Claude Code, define the server in your project's local `.mcp.
 ```json
 {
   "mcpServers": {
-    "claude-workflow-cli-bridge": {
+    "mcp-workflow-cli-bridge": {
       "cwd": ".",
       "command": "node",
-      "args": ["--import", "tsx", "/absolute/path/to/claude-workflow-cli-bridge/src/mcp-server.ts"]
+      "args": ["--import", "tsx", "/absolute/path/to/mcp-workflow-cli-bridge/src/mcp-server.ts"]
     }
   }
 }
@@ -126,15 +126,15 @@ Then, create `.claude/agents/workflow-cli-router.md` to map agent work to `code_
 You can add the bridge directly as a Codex plugin:
 
 ```bash
-codex plugin marketplace add /path/to/claude-workflow-cli-bridge
-codex plugin add claude-workflow-cli-bridge@claude-workflow-cli-bridge-local
+codex plugin marketplace add /path/to/mcp-workflow-cli-bridge
+codex plugin add mcp-workflow-cli-bridge@mcp-workflow-cli-bridge-local
 ```
 
 ### 4. Cursor / Windsurf
 In Cursor/Windsurf, navigate to **Settings** -> **Features** -> **MCP** and add a new MCP Server:
-- **Name**: `claude-workflow-cli-bridge`
+- **Name**: `mcp-workflow-cli-bridge`
 - **Type**: `command`
-- **Command**: `node --import tsx /absolute/path/to/claude-workflow-cli-bridge/src/mcp-server.ts`
+- **Command**: `node --import tsx /absolute/path/to/mcp-workflow-cli-bridge/src/mcp-server.ts`
 
 ---
 
@@ -232,10 +232,10 @@ npm run live:validate:claude
 
 ## Contributing
 
-See our [CONTRIBUTING.md](file:///home/ubuntu/repos/claude-workflow-cli-bridge/CONTRIBUTING.md) for detailed guidelines on developer setup, coding styles, and test validations.
+See our [CONTRIBUTING.md](file:///home/ubuntu/repos/mcp-workflow-cli-bridge/CONTRIBUTING.md) for detailed guidelines on developer setup, coding styles, and test validations.
 
 ---
 
 ## Changelog
 
-For a full list of changes and releases, see [CHANGELOG.md](file:///home/ubuntu/repos/claude-workflow-cli-bridge/CHANGELOG.md).
+For a full list of changes and releases, see [CHANGELOG.md](file:///home/ubuntu/repos/mcp-workflow-cli-bridge/CHANGELOG.md).

@@ -26,7 +26,7 @@ function adapter(overrides = {}) {
 test('providerStatuses reports adapter command availability without checking auth', async () => {
   const statuses = await providerStatuses({
     node: adapter({ command: process.execPath }),
-    missing: adapter({ command: 'definitely-missing-claude-workflow-cli-bridge-command' }),
+    missing: adapter({ command: 'definitely-missing-mcp-workflow-cli-bridge-command' }),
   })
 
   assert.equal(statuses.find((status) => status.provider === 'node').available, true)
@@ -36,7 +36,7 @@ test('providerStatuses reports adapter command availability without checking aut
 test('assertProviderCommandAvailable rejects missing CLI commands before dispatch', async () => {
   await assert.rejects(
     assertProviderCommandAvailable('missing', adapter({
-      command: 'definitely-missing-claude-workflow-cli-bridge-command',
+      command: 'definitely-missing-mcp-workflow-cli-bridge-command',
     })),
     (error) => {
       assert.equal(error.code, 'PROVIDER_UNAVAILABLE')

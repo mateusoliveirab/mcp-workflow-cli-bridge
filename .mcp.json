@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "claude-workflow-cli-bridge": {
+    "mcp-workflow-cli-bridge": {
       "cwd": ".",
       "command": "node",
       "args": [

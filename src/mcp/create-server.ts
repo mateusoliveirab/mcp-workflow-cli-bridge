@@ -23,7 +23,7 @@ const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
 
 export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer {
   const server = new McpServer({
-    name: pkg.name || 'claude-workflow-cli-bridge',
+    name: pkg.name || 'mcp-workflow-cli-bridge',
     version: pkg.version || '0.0.0',
   })
 
