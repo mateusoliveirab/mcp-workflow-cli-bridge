@@ -10,7 +10,7 @@
     "LICENSE",
     "README.md"
   ],
-  "description": "Architecture and future implementation for routing Claude Dynamic Workflow agent work to local coding CLIs.",
+  "description": "Local MCP server that routes Claude Dynamic Workflow agent tasks to local coding CLIs.",
   "author": "Mateus Borges",
   "repository": {
     "type": "git",

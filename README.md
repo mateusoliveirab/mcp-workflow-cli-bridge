@@ -1,12 +1,12 @@
 # MCP Workflow CLI Bridge
 
-![tests](https://img.shields.io/badge/tests-50%20passing-brightgreen)
+![CI](https://github.com/mateusoliveirab/mcp-workflow-cli-bridge/actions/workflows/ci.yml/badge.svg)
 ![node](https://img.shields.io/badge/node-%3E%3D20-blue)
 ![typescript](https://img.shields.io/badge/typescript-5.x-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![mcp](https://img.shields.io/badge/mcp-supported-orange)
 
-A local Model Context Protocol (MCP) server that acts as a unified dispatch hub, routing tasks to various coding agent CLIs installed on your local machine (`claude`, `codex`, `opencode`, `gemini`, `agy`).
+A local Model Context Protocol (MCP) server that acts as a dispatch hub, routing tasks to coding agent CLIs installed on your local machine (`claude`, `codex`, `opencode`, `gemini`, `agy`).
 
 It provides capability-based routing, CLI availability discovery, strict JSON Schema output validation, automatic execution retries, and a normalized response envelope.
 
@@ -232,10 +232,10 @@ npm run live:validate:claude
 
 ## Contributing
 
-See our [CONTRIBUTING.md](file:///home/ubuntu/repos/mcp-workflow-cli-bridge/CONTRIBUTING.md) for detailed guidelines on developer setup, coding styles, and test validations.
+See our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on developer setup, coding style, and test validations.
 
 ---
 
 ## Changelog
 
-For a full list of changes and releases, see [CHANGELOG.md](file:///home/ubuntu/repos/mcp-workflow-cli-bridge/CHANGELOG.md).
+For a full list of changes and releases, see [CHANGELOG.md](CHANGELOG.md).

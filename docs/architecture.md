@@ -92,10 +92,13 @@ The broker owns:
 - sandbox/permission policy
 - timeout policy
 - retry policy
-- concurrency limits
 - output normalization
-- audit logs
 - failure classification
+
+Planned (not yet implemented):
+
+- concurrency limits
+- audit logs
 
 The broker does not own:
 

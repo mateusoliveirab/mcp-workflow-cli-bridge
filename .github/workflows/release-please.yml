@@ -18,11 +18,3 @@ jobs:
         with:
           release-type: node
 
-      # Optional: You can add steps to publish to NPM or run extra scripts when a release is actually created
-      # - name: Publish to NPM
-      #   if: ${{ steps.release.outputs.release_created }}
-      #   run: |
-      #     npm ci
-      #     npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

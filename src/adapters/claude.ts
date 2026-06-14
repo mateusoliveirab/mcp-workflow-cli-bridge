@@ -1,4 +1,5 @@
 import { normalizeSuccess, getExtraDirs } from './common.ts'
+import { BridgeError, ErrorCode } from '../broker/errors.ts'
 import { runProcess } from './process-runner.ts'
 import type { AdapterFn, ProviderAdapter, RunProcessFn } from './contract.ts'
 import type { ResolvedRequest, Envelope } from '../types.ts'
@@ -22,7 +23,17 @@ export const runClaude: AdapterFn = async (request: ResolvedRequest, runProcessF
     timeoutMs: request.timeoutMs,
   })
 
-  const data = request.schema ? JSON.parse(processResult.stdout) : undefined
+  let data: unknown
+  if (request.schema) {
+    try {
+      data = JSON.parse(processResult.stdout)
+    } catch (error) {
+      throw new BridgeError(ErrorCode.OUTPUT_PARSE_FAILED, `Claude JSON output parse failed: ${(error as Error).message}`, {
+        recoverable: true,
+        cause: error as Error,
+      })
+    }
+  }
   return normalizeSuccess(request, {
     data,
     text: request.schema ? '' : processResult.stdout.trim(),

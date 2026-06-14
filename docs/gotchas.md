@@ -86,7 +86,7 @@ agents or multiple writers.
 
 Design implication:
 
-The broker needs:
+The broker will need (not yet implemented):
 
 - per-provider concurrency limits
 - per-workspace write locks

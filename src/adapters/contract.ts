@@ -9,10 +9,9 @@ export type RunProcessFn = (
 ) => Promise<{ stdout: string; stderr: string; durationMs: number }>
 
 /**
- * What a provider CLI can actually do. Declaring this as data (instead of
- * scattered `if`s per adapter) lets the broker enforce capabilities uniformly
- * and fail fast — killing the "each adapter handles concepts differently"
- * class of drift (e.g. structured output, image attachments, skip-permissions).
+ * What a provider CLI can actually do. Declaring capabilities as data (instead
+ * of scattered `if`s per adapter) lets the broker enforce them uniformly and
+ * reject unsupported requests before dispatch.
  */
 export interface ProviderCapabilities {
   /** Native structured JSON output validated against a schema. */
@@ -25,7 +24,7 @@ export interface ProviderCapabilities {
   skipPermissions: boolean
 }
 
-/** Transitional alias for the current function-shaped adapters. */
+/** Bare-function adapter shape, used by tests and mock adapters. */
 export type AdapterFn = (request: ResolvedRequest, runProcessFn?: RunProcessFn) => Promise<Envelope>
 
 /** Target shape: an adapter is its capabilities plus a run function. */
@@ -45,8 +44,8 @@ export const PERMISSIVE_CAPABILITIES: ProviderCapabilities = Object.freeze({
   skipPermissions: true,
 })
 
-// Accept both the ProviderAdapter shape ({ capabilities, run }) and the legacy
-// bare adapter function still used by some callers and tests.
+// Accept both the ProviderAdapter shape ({ capabilities, run }) and bare
+// functions (used by unit tests that pass a mock adapter as a single function).
 export function resolveAdapterEntry(entry: AdapterEntry): ProviderAdapter {
   if (typeof entry === 'function') {
     return { capabilities: PERMISSIVE_CAPABILITIES, run: entry }

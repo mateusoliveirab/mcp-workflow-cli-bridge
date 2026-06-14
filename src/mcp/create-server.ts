@@ -27,9 +27,6 @@ export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer
     version: pkg.version || '0.0.0',
   })
 
-  // Expose the shape of AgentInputSchema directly as the input schema for the tool.
-  // We need to omit fields that shouldn't be passed or just use shape properties.
-  // Zod's .shape returns the object containing the key-value schema shapes.
   server.registerTool('code_cli_bridge.run_agent', {
     title: 'Run a workflow agent through a local coding CLI',
     description: 'Routes a Claude workflow agent request to Codex, OpenCode, Gemini, or Claude through the local bridge.',

@@ -45,7 +45,7 @@ export async function runAgent(input: AgentInput, options: RunAgentOptions = {})
 
   // Minimal request so the catch can always build a normalized envelope, even
   // if route selection itself fails before the full request is assembled.
-  let request = { ...input, runId: input.runId || randomUUID() } as unknown as ResolvedRequest
+  let request: ResolvedRequest = { ...input, runId: input.runId || randomUUID() } as ResolvedRequest
   let attempts = 1
 
   try {

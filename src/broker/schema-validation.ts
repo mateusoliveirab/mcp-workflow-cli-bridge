@@ -7,7 +7,7 @@ const ajv = new Ajv({
   strict: false,
 })
 
-// Schemas are revalidated several times per request (broker pre-check, adapter
+// Schemas are validated up to 3 times per request (broker pre-check, adapter
 // output, broker post-check). Cache the compiled validator by schema reference
 // so each request compiles once. WeakMap keeps it leak-free across runs.
 const compiledCache = new WeakMap<object, ValidateFunction>()
