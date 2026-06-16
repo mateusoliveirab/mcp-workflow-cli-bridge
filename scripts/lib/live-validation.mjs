@@ -151,6 +151,7 @@ export function buildLiveValidationInput({ provider, timeoutMs = DEFAULT_TIMEOUT
     prompt: 'Reply with exactly the word OK and nothing else. Do not use any tools.',
     timeoutMs,
     dangerouslySkipPermissions: Boolean(adapter?.capabilities.skipPermissions),
+    disableFallback: true,
   }
 }
 

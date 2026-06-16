@@ -29,9 +29,9 @@ CLIs through a local MCP broker.
   calls agent(...)
 
 .claude/agents/workflow-cli-router.md
-  calls MCP tool: code_cli_bridge.run_agent(...)
+  calls MCP tool: clibridge.run_agent(...)
 
-code-cli-bridge MCP server
+clibridge MCP server
   validates request
   loads routing config
   loads agent prompts

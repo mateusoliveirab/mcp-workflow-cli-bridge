@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "mcp-workflow-cli-bridge": {
+    "clibridge": {
       "cwd": ".",
       "command": "node",
       "args": [

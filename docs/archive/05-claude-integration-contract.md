@@ -102,7 +102,7 @@ The proxy agent should call:
 
 ```json
 {
-  "tool": "code_cli_bridge.run_agent",
+  "tool": "clibridge.run_agent",
   "arguments": {
     "workflow": "generate-blog-image",
     "phase": "Create",

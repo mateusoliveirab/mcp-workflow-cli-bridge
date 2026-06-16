@@ -3,11 +3,13 @@ import { fileURLToPath } from 'node:url'
 import { join, dirname } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { runAgent } from '../broker/run-agent.ts'
+import { runWorkflow } from '../workflows/workflow-executor.ts'
 import { defaultAdapters } from '../adapters/registry.ts'
 import { providerStatuses } from '../adapters/availability.ts'
 import { loadJsonConfig } from '../config/load-config.ts'
 import type { RunAgentOptions } from '../broker/run-agent.ts'
 import { AgentInputSchema } from '../types.ts'
+import { RunWorkflowInputSchema } from '../workflows/workflow-executor.ts'
 import type { AgentInput, BridgeConfig } from '../types.ts'
 
 export interface CreateMcpServerOptions {
@@ -23,11 +25,11 @@ const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
 
 export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer {
   const server = new McpServer({
-    name: pkg.name || 'mcp-workflow-cli-bridge',
+    name: pkg.name || 'clibridge',
     version: pkg.version || '0.0.0',
   })
 
-  server.registerTool('code_cli_bridge.run_agent', {
+  server.registerTool('clibridge.run_agent', {
     title: 'Run a workflow agent through a local coding CLI',
     description: 'Routes a Claude workflow agent request to Codex, OpenCode, Gemini, or Claude through the local bridge.',
     inputSchema: AgentInputSchema.shape,
@@ -53,7 +55,28 @@ export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer
     }
   })
 
-  server.registerTool('code_cli_bridge.providers', {
+  server.registerTool('clibridge.run_workflow', {
+    title: 'Run a workflow file through local coding CLIs',
+    description: 'Loads a declarative workflow file, executes its phases, and delegates agent phases through the local bridge providers.',
+    inputSchema: RunWorkflowInputSchema.shape,
+  }, async (input) => {
+    const result = await runWorkflow(input, {
+      config: options.config,
+      adapters: options.adapters,
+    })
+
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+      structuredContent: result as unknown as Record<string, unknown>,
+    }
+  })
+
+  server.registerTool('clibridge.providers', {
     title: 'List registered provider adapters',
     description: 'Lists provider adapters, capabilities, and whether their CLI command is available on PATH.',
     inputSchema: {},

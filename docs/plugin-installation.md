@@ -8,13 +8,13 @@ This project is also a local Codex plugin.
 .codex-plugin/plugin.json
 .mcp.json
 .agents/plugins/marketplace.json
-skills/workflow-cli-bridge/SKILL.md
+skills/clibridge/SKILL.md
 ```
 
 The plugin manifest exposes:
 
-- the `workflow-cli-bridge` skill
-- the `mcp-workflow-cli-bridge` MCP server
+- the `clibridge` skill
+- the `clibridge` MCP server
 
 The local marketplace points to the current project root with:
 
@@ -35,8 +35,8 @@ plugin source.
 From anywhere:
 
 ```bash
-codex plugin marketplace add /path/to/mcp-workflow-cli-bridge
-codex plugin add mcp-workflow-cli-bridge@mcp-workflow-cli-bridge-local
+codex plugin marketplace add /path/to/clibridge
+codex plugin add clibridge@clibridge-local
 ```
 
 Restart Codex or start a new thread after installation so skills and MCP tools
@@ -57,7 +57,7 @@ During local iteration, update the Codex plugin cachebuster before reinstalling:
 
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py .
-codex plugin add mcp-workflow-cli-bridge@mcp-workflow-cli-bridge-local
+codex plugin add clibridge@clibridge-local
 ```
 
 Then start a new Codex thread to pick up the new plugin metadata.

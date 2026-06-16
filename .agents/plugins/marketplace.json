@@ -1,11 +1,11 @@
 {
-  "name": "mcp-workflow-cli-bridge-local",
+  "name": "clibridge-local",
   "interface": {
-    "displayName": "MCP Workflow CLI Bridge Local"
+    "displayName": "clibridge Local"
   },
   "plugins": [
     {
-      "name": "mcp-workflow-cli-bridge",
+      "name": "clibridge",
       "source": {
         "source": "local",
         "path": "."

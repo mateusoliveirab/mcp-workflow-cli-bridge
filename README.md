@@ -1,7 +1,7 @@
-<h1 align="center">MCP Workflow CLI Bridge</h1>
+<h1 align="center">clibridge</h1>
 
 <p align="center">
-  <img src="https://github.com/mateusoliveirab/mcp-workflow-cli-bridge/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  <img src="https://github.com/mateusoliveirab/clibridge/actions/workflows/ci.yml/badge.svg" alt="CI" />
   <img src="https://img.shields.io/badge/node-%3E%3D20-blue" alt="node" />
   <img src="https://img.shields.io/badge/typescript-5.x-blue" alt="typescript" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="license" />
@@ -23,8 +23,8 @@ It provides capability-based routing, CLI availability discovery, strict JSON Sc
   - [Codex Plugin](#3-codex-plugin)
   - [Cursor / Windsurf](#4-cursor--windsurf)
 - [MCP Tools Spec](#mcp-tools-spec)
-  - [`code_cli_bridge.providers`](#code_cli_bridgeproviders)
-  - [`code_cli_bridge.run_agent`](#code_cli_bridgerun_agent)
+  - [`clibridge.providers`](#clibridgeproviders)
+  - [`clibridge.run_agent`](#clibridgerun_agent)
 - [Routing Configuration](#routing-configuration)
 - [Security & Sandbox Guidelines](#security--sandbox-guidelines)
 - [Development & Testing](#development--testing)
@@ -35,7 +35,7 @@ It provides capability-based routing, CLI availability discovery, strict JSON Sc
 
 Claude Code Dynamic Workflows (`.claude/workflows/*.js`) and other MCP clients often need to delegate sub-tasks to specialized CLI engines—e.g., Codex for structured output with image analysis, or OpenCode for lightweight generation—without hardcoding provider-specific APIs or rewriting execution logic for each different client environment.
 
-The **MCP Workflow CLI Bridge** solves this by abstracting local CLI tool execution behind a standardized MCP interface.
+The **clibridge** solves this by abstracting local CLI tool execution behind a standardized MCP interface.
 
 ## How It Works
 
@@ -43,7 +43,7 @@ The **MCP Workflow CLI Bridge** solves this by abstracting local CLI tool execut
 Claude Dynamic Workflow (.claude/workflows/*.js)
   -> agent() call with agentType: "workflow-cli-router"
   -> .claude/agents/workflow-cli-router.md (Claude subagent)
-  -> MCP tool: code_cli_bridge.run_agent
+  -> MCP tool: clibridge.run_agent
   -> broker: routing + schema validation + retry
   -> provider adapter (claude | codex | opencode | gemini | agy)
   -> local CLI process
@@ -76,8 +76,8 @@ Below is the capabilities matrix for the supported local CLI engines:
 - Local installation of the CLI engines you plan to use (e.g., `claude`, `codex`, etc.) available on your system `PATH`.
 
 ```bash
-git clone https://github.com/mateusoliveirab/mcp-workflow-cli-bridge.git
-cd mcp-workflow-cli-bridge
+git clone https://github.com/mateusoliveirab/clibridge.git
+cd clibridge
 npm install
 ```
 
@@ -90,9 +90,9 @@ Add the server configuration to your `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "mcp-workflow-cli-bridge": {
+    "clibridge": {
       "command": "node",
-      "args": ["--import", "tsx", "/absolute/path/to/mcp-workflow-cli-bridge/src/mcp-server.ts"]
+      "args": ["--import", "tsx", "/absolute/path/to/clibridge/src/mcp-server.ts"]
     }
   }
 }
@@ -104,36 +104,36 @@ To use this inside Claude Code, define the server in your project's local `.mcp.
 ```json
 {
   "mcpServers": {
-    "mcp-workflow-cli-bridge": {
+    "clibridge": {
       "cwd": ".",
       "command": "node",
-      "args": ["--import", "tsx", "/absolute/path/to/mcp-workflow-cli-bridge/src/mcp-server.ts"]
+      "args": ["--import", "tsx", "/absolute/path/to/clibridge/src/mcp-server.ts"]
     }
   }
 }
 ```
-Then, create `.claude/agents/workflow-cli-router.md` to map agent work to `code_cli_bridge.run_agent`.
+Then, create `.claude/agents/workflow-cli-router.md` to map agent work to `clibridge.run_agent`.
 
 ### 3. Codex Plugin
 You can add the bridge directly as a Codex plugin:
 
 ```bash
-codex plugin marketplace add /path/to/mcp-workflow-cli-bridge
-codex plugin add mcp-workflow-cli-bridge@mcp-workflow-cli-bridge-local
+codex plugin marketplace add /path/to/clibridge
+codex plugin add clibridge@clibridge-local
 ```
 
 ### 4. Cursor / Windsurf
 In Cursor/Windsurf, navigate to **Settings** -> **Features** -> **MCP** and add a new MCP Server:
-- **Name**: `mcp-workflow-cli-bridge`
+- **Name**: `clibridge`
 - **Type**: `command`
-- **Command**: `node --import tsx /absolute/path/to/mcp-workflow-cli-bridge/src/mcp-server.ts`
+- **Command**: `node --import tsx /absolute/path/to/clibridge/src/mcp-server.ts`
 
 ## MCP Tools Spec
 
-### `code_cli_bridge.providers`
+### `clibridge.providers`
 Returns all registered provider adapters, their capabilities, and whether their CLI binaries are available on the user's `PATH`.
 
-### `code_cli_bridge.run_agent`
+### `clibridge.run_agent`
 Runs a task on the targeted provider.
 
 #### Parameters:
@@ -169,6 +169,36 @@ Runs a task on the targeted provider.
 }
 ```
 
+### `clibridge.run_workflow`
+Runs a declarative workflow file through the generic MCP workflow executor. This is the preferred interface when a client wants to execute a full workflow instead of a single provider task.
+
+The MCP server exposes one workflow executor, not one tool per workflow. Repository-specific behavior belongs in the workflow file and its inputs.
+
+#### Parameters:
+
+| Field | Type | Required | Description |
+| :--- | :---: | :---: | :--- |
+| `workflowPath` | `string` | **Yes** | Absolute or caller-resolvable path to a JSON workflow file |
+| `cwd` | `string` | **Yes** | Target repository where phases and shell commands run |
+| `task` | `string` | **Yes** | User task or contribution objective |
+| `dryRun` | `boolean` | No | If true, agent phases and shell commands are simulated |
+| `inputs` | `object` | No | Workflow-specific inputs such as `changeType`, `publishTarget`, or `issue` |
+| `routeConfigPath` | `string` | No | Optional route config for provider selection |
+
+#### Example Call:
+```json
+{
+  "workflowPath": "/home/ubuntu/repos/clibridge/examples/headroom-contribution.workflow.json",
+  "cwd": "/home/ubuntu/repos/workbench-claude/headroom",
+  "task": "fix the wrap prepare-only path",
+  "dryRun": true,
+  "inputs": {
+    "changeType": "bugfix",
+    "publishTarget": "pr"
+  }
+}
+```
+
 ## Routing Configuration
 
 Create a `route-config.json` at your repository root to govern automatic tool execution routing:
@@ -184,6 +214,37 @@ Create a `route-config.json` at your repository root to govern automatic tool ex
 ```
 If no route configuration matches, the broker will auto-select a provider *only* if exactly one available CLI satisfies the requested capabilities.
 
+## Contribution Workflow
+
+For repository contribution work, the bridge includes a client-neutral workflow entrypoint:
+
+```bash
+node bin/bridge-contribute.mjs --dry-run "add a focused test for route selection"
+```
+
+This runs the reference `github-contribution` CLI workflow as a code architecture developer. For MCP clients, prefer `clibridge.run_workflow` with a JSON workflow file such as `examples/headroom-contribution.workflow.json`. Headroom-specific rules live in workflow/config files, not in a dedicated MCP tool.
+
+## CLI Utilities
+
+The bridge includes command-line tools to monitor executions and discover workflows dynamically:
+
+### Generic CLI (`bridge-cli`)
+Inspect and execute workflows natively:
+```bash
+node --import tsx bin/bridge-cli.mjs list                  # List registered workflows
+node --import tsx bin/bridge-cli.mjs info <workflow-name>  # Inspect phase details
+node --import tsx bin/bridge-cli.mjs doc                   # View the generic executor specification
+node --import tsx bin/bridge-cli.mjs run <workflow-path> --task "prompt"  # Run a workflow directly
+```
+
+### Live Run TUI Monitor (`bridge-monitor`)
+Tails and visualizes the state of current or past runs in your terminal:
+```bash
+node --import tsx bin/bridge-monitor.mjs            # Live TUI tailing active runs
+node --import tsx bin/bridge-monitor.mjs --once     # Single terminal frame print
+node --import tsx bin/bridge-monitor.mjs --run <id> # Focus a specific run
+```
+
 ## Security & Sandbox Guidelines
 
 > [!WARNING]
@@ -194,11 +255,12 @@ If no route configuration matches, the broker will auto-select a provider *only*
 
 ## Development & Testing
 
-Run the local test suite using:
+Run the local test suite and static checks:
 ```bash
 npm install
-npm test          # Runs 50 deterministic tests via node:test
-npm run typecheck # Strict TypeScript check
+npm test                   # Run unit tests via node:test
+npm run test:coverage      # Run unit tests with a code coverage report
+npm run typecheck          # Strict TypeScript checks
 ```
 
 Validate provider connectivity without spawning actual CLI tasks:
@@ -206,7 +268,7 @@ Validate provider connectivity without spawning actual CLI tasks:
 npm run smoke
 ```
 
-Validate live provider adapters (requires the corresponding CLI binaries installed and configured):
+Validate live provider adapters strictly (tests the actual binary directly, bypassing fallbacks):
 ```bash
 npm run live:validate
 npm run live:validate:claude
@@ -217,5 +279,8 @@ npm run live:validate:claude
 See our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on developer setup, coding style, and test validations.
 
 ## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
 
 For a full list of changes and releases, see [CHANGELOG.md](CHANGELOG.md).

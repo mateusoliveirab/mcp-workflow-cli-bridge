@@ -6,7 +6,7 @@ import { assertStructuredOutput } from '../broker/schema-validation.ts'
 import type { ResolvedRequest, SuccessEnvelope } from '../types.ts'
 
 export async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
-  const dir = await mkdtemp(join(tmpdir(), 'code-cli-bridge-'))
+  const dir = await mkdtemp(join(tmpdir(), 'clibridge-'))
   try {
     return await fn(dir)
   } finally {

@@ -11,6 +11,7 @@ const result = await runAgent({
   model: model || undefined,
   timeoutMs,
   dangerouslySkipPermissions: true,
+  disableFallback: true,
 }, { config: { defaultProvider: provider }, loadAgent: false })
 
 const text = (result.text || '').replace(/\s+/g, ' ').slice(0, 50)

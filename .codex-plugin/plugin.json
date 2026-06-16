@@ -1,5 +1,5 @@
 {
-  "name": "mcp-workflow-cli-bridge",
+  "name": "clibridge",
   "version": "0.1.0+codex.20260614042836",
   "description": "Route Claude Dynamic Workflow agent calls to local coding CLIs through a structured MCP bridge.",
   "author": {
@@ -7,8 +7,8 @@
     "email": "mateusoliveirab2@gmail.com",
     "url": "https://mateusborges.dev/"
   },
-  "homepage": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
-  "repository": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
+  "homepage": "https://github.com/mateusoliveirab/clibridge",
+  "repository": "https://github.com/mateusoliveirab/clibridge",
   "license": "MIT",
   "keywords": [
     "claude",
@@ -21,9 +21,9 @@
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "MCP Workflow CLI Bridge",
+    "displayName": "CLI Bridge",
     "shortDescription": "Route Claude workflows to local coding CLIs",
-    "longDescription": "Use MCP Workflow CLI Bridge to design, test, and operate a local MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude through validated provider adapters.",
+    "longDescription": "Use CLI Bridge to design, test, and operate a local MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude through validated provider adapters.",
     "developerName": "Mateus Borges",
     "category": "Developer Tools",
     "capabilities": [
@@ -31,9 +31,9 @@
       "Read",
       "Write"
     ],
-    "websiteURL": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
-    "privacyPolicyURL": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
-    "termsOfServiceURL": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge",
+    "websiteURL": "https://github.com/mateusoliveirab/clibridge",
+    "privacyPolicyURL": "https://github.com/mateusoliveirab/clibridge",
+    "termsOfServiceURL": "https://github.com/mateusoliveirab/clibridge",
     "defaultPrompt": [
       "Use the workflow CLI bridge in this repo",
       "Plan a Claude workflow adapter route",

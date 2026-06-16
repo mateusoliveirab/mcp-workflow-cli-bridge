@@ -136,5 +136,96 @@
         "output": "text"
       }
     ]
+  },
+  "github-contribution": {
+    "name": "github-contribution",
+    "description": "Turn a task or issue into a scoped GitHub contribution for a specific repository.",
+    "whenToUse": "Repository work that should become a branch, validated diff, review, and pull request.",
+    "antiPattern": "Tiny local-only edits; tasks where publishing or PR hygiene is irrelevant.",
+    "phases": [
+      {
+        "name": "rules",
+        "role": "explorer",
+        "demand": {},
+        "readOnly": true,
+        "gate": {
+          "verify": "repo contribution rules discovered and policy allows this change type",
+          "onFail": "stop"
+        }
+      },
+      {
+        "name": "preflight",
+        "role": "explorer",
+        "demand": {},
+        "readOnly": true
+      },
+      {
+        "name": "plan",
+        "role": "architect",
+        "demand": {
+          "strength": "high"
+        },
+        "output": "text"
+      },
+      {
+        "name": "implement",
+        "role": "writer",
+        "demand": {
+          "capabilities": [
+            "skipPermissions"
+          ]
+        },
+        "input": "plan",
+        "skipPermissions": true
+      },
+      {
+        "name": "validate",
+        "role": "explorer",
+        "demand": {},
+        "readOnly": true,
+        "gate": {
+          "verify": "repo-specific validation commands",
+        "onFail": "stop"
+        }
+      },
+      {
+        "name": "stress",
+        "role": "explorer",
+        "demand": {},
+        "readOnly": true,
+        "gate": {
+          "verify": "repo-specific stress validation commands",
+          "onFail": "stop"
+        }
+      },
+      {
+        "name": "review",
+        "role": "judge",
+        "demand": {
+          "strength": "high"
+        },
+        "input": "validate",
+        "output": "text"
+      },
+      {
+        "name": "describe",
+        "role": "architect",
+        "demand": {
+          "strength": "high"
+        },
+        "input": "review",
+        "output": "text"
+      },
+      {
+        "name": "publish",
+        "role": "writer",
+        "demand": {
+          "capabilities": [
+            "skipPermissions"
+          ]
+        },
+        "confirmIfDestructive": true
+      }
+    ]
   }
 }

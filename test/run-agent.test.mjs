@@ -376,3 +376,48 @@ test('runAgent falls back to another compatible available provider when primary 
   assert.ok(result.warnings.some((w) => w.includes("Fallback triggered from 'primary' to 'fallback'")))
 })
 
+test('runAgent does not fall back when disableFallback is true', async () => {
+  const result = await runAgent({
+    workflow: 'w',
+    phase: 'Create',
+    label: 'l',
+    cwd,
+    prompt: 'go',
+    disableFallback: true,
+  }, {
+    config: { defaultProvider: 'primary' },
+    loadAgent: false,
+    adapters: {
+      primary: {
+        capabilities: { structuredOutput: false, images: false, sandbox: false, skipPermissions: false },
+        run: async (request) => {
+          throw new BridgeError(ErrorCode.PROCESS_EXIT_NONZERO, 'Mock primary crash', { recoverable: false })
+        },
+      },
+      fallback: {
+        capabilities: { structuredOutput: false, images: false, sandbox: false, skipPermissions: false },
+        run: async (request) => {
+          return {
+            ok: true,
+            runId: request.runId,
+            provider: 'fallback',
+            phase: request.phase,
+            label: request.label,
+            durationMs: 1,
+            attempts: 1,
+            structured: false,
+            text: 'fallback success text',
+            usage: {},
+            artifacts: [],
+            warnings: [],
+          }
+        },
+      },
+    },
+  })
+
+  assert.equal(result.ok, false)
+  assert.equal(result.errorCode, ErrorCode.PROCESS_EXIT_NONZERO)
+  assert.equal(result.provider, 'primary')
+})
+

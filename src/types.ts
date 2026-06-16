@@ -33,6 +33,7 @@ export const AgentInputSchema = z.object({
   addDir: z.string().optional(),
   addDirs: z.array(z.string()).optional(),
   envAllowlist: z.array(z.string()).optional(),
+  disableFallback: z.boolean().optional(),
 })
 
 export type Attachment = z.infer<typeof AttachmentSchema>
@@ -68,6 +69,7 @@ export interface ResolvedRequest extends AgentInput {
   maxRetries: number
   env: Record<string, string | undefined>
   dangerouslySkipPermissions: boolean
+  disableFallback?: boolean
 }
 
 export interface SuccessEnvelope {

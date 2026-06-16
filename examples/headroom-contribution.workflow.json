@@ -1,0 +1,109 @@
+{
+  "name": "headroom-contribution",
+  "description": "Issue-first and PR-ready contribution workflow for the public Headroom repository.",
+  "inputDefaults": {
+    "changeType": "bugfix",
+    "publishTarget": "pr",
+    "maintainerOk": false,
+    "issue": ""
+  },
+  "phases": [
+    {
+      "name": "rules",
+      "kind": "read-files",
+      "maxBytes": 12000,
+      "files": [
+        "CONTRIBUTING.md",
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        "CODE_OF_CONDUCT.md",
+        "CHANGELOG.md",
+        "Makefile",
+        ".pre-commit-config.yaml",
+        ".commitlintrc.json",
+        "scripts/install-git-hooks.sh",
+        "scripts/pr-governance.py",
+        ".github/workflows/ci.yml",
+        ".github/workflows/pr-health.yml",
+        ".github/workflows/rust.yml"
+      ]
+    },
+    {
+      "name": "policy",
+      "kind": "policy",
+      "assertions": [
+        {
+          "input": "changeType",
+          "notIn": ["refactor-only", "test-ci-only"],
+          "unlessInputTruthy": "maintainerOk",
+          "message": "Headroom blocks refactor-only and test/CI-only contribution work unless a maintainer asked for it."
+        },
+        {
+          "input": "changeType",
+          "in": ["feature", "architecture", "dependency"],
+          "requiresAnyInput": ["issue", "maintainerOk"],
+          "unless": {
+            "input": "publishTarget",
+            "equals": "issue"
+          },
+          "message": "Headroom requires an issue or maintainer approval before implementing feature, architecture, or dependency changes."
+        }
+      ]
+    },
+    {
+      "name": "plan",
+      "kind": "agent",
+      "demand": {
+        "strength": "high"
+      },
+      "mockText": "[dry-run plan]",
+      "prompt": "Repository: Headroom\nTask: {{task}}\nInputs: {{inputs}}\n\nContribution rules discovered:\n{{results.rules}}\n\nAssume the perspective of a code architecture developer contributing to this public repository. Produce a concise plan with ownership boundaries, risk, likely files, validation commands, stress commands, and whether this should be issue-first or PR-ready."
+    },
+    {
+      "name": "validate",
+      "kind": "shell",
+      "skipIf": {
+        "input": "publishTarget",
+        "equals": "issue"
+      },
+      "commands": [
+        "uv run ruff check .",
+        "uv run ruff format --check .",
+        "uv run mypy headroom --ignore-missing-imports",
+        "uv run pytest"
+      ]
+    },
+    {
+      "name": "stress",
+      "kind": "shell",
+      "skipIf": {
+        "input": "publishTarget",
+        "equals": "issue"
+      },
+      "commands": [
+        "uv run make ci-precheck"
+      ]
+    },
+    {
+      "name": "review",
+      "kind": "agent",
+      "skipIf": {
+        "input": "publishTarget",
+        "equals": "issue"
+      },
+      "demand": {
+        "strength": "high"
+      },
+      "mockText": "[dry-run review]",
+      "prompt": "Review the Headroom contribution as a code architecture developer.\n\nTask: {{task}}\nInputs: {{inputs}}\nPlan: {{results.plan}}\nValidation: {{results.validate}}\nStress: {{results.stress}}\n\nFocus on correctness, architectural fit, missing tests, public-repo professionalism, and real behavior proof gaps."
+    },
+    {
+      "name": "describe",
+      "kind": "agent",
+      "demand": {
+        "strength": "high"
+      },
+      "mockText": "[dry-run description]",
+      "prompt": "Write the final GitHub artifact for Headroom.\n\nTask: {{task}}\nInputs: {{inputs}}\nRules: {{results.rules}}\nPlan: {{results.plan}}\nValidation: {{results.validate}}\nStress: {{results.stress}}\nReview: {{results.review}}\n\nIf publishTarget is issue, write an issue/spec with API surface, behavior changes, user stories, failure modes, recovery/resilience, and security considerations. If publishTarget is pr, write a PR title/body with Testing, Test Output, Real Behavior Proof, Review Readiness, and Checklist sections."
+    }
+  ]
+}

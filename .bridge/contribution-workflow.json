@@ -1,0 +1,53 @@
+{
+  "repository": {
+    "name": "clibridge",
+    "defaultBranch": "main",
+    "publicRepo": true
+  },
+  "contribution": {
+    "branchPrefix": "contrib/",
+    "requireCleanWorktree": true,
+    "allowPublish": true,
+    "draftPr": true
+  },
+  "rules": {
+    "files": [
+      "CONTRIBUTING.md",
+      ".github/PULL_REQUEST_TEMPLATE.md",
+      "README.md",
+      "CLAUDE.md"
+    ],
+    "requireDiscovery": true
+  },
+  "validation": {
+    "commands": [
+      "npm run typecheck",
+      "npm test"
+    ],
+    "stressCommands": [
+      "npm run smoke"
+    ]
+  },
+  "policy": {
+    "issueFirstChangeTypes": [
+      "feature",
+      "architecture",
+      "dependency"
+    ],
+    "blockedChangeTypes": [
+      "refactor-only",
+      "test-ci-only"
+    ],
+    "requireMaintainerOkForIssueFirst": true,
+    "requireRealBehaviorProof": true,
+    "requireReproductionForBugfix": true,
+    "requireChangelogForUserFacing": false
+  },
+  "review": {
+    "requireReview": true
+  },
+  "pr": {
+    "titlePrefix": "",
+    "labels": []
+  }
+}

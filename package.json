@@ -1,5 +1,5 @@
 {
-  "name": "mcp-workflow-cli-bridge",
+  "name": "clibridge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,15 +14,21 @@
   "author": "Mateus Borges",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mateusoliveirab/mcp-workflow-cli-bridge.git"
+    "url": "git+https://github.com/mateusoliveirab/clibridge.git"
   },
   "bugs": {
-    "url": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge/issues"
+    "url": "https://github.com/mateusoliveirab/clibridge/issues"
   },
-  "homepage": "https://github.com/mateusoliveirab/mcp-workflow-cli-bridge#readme",
+  "homepage": "https://github.com/mateusoliveirab/clibridge#readme",
+  "bin": {
+    "bridge-cli": "./bin/bridge-cli.mjs",
+    "bridge-contribute": "./bin/bridge-contribute.mjs",
+    "bridge-monitor": "./bin/bridge-monitor.mjs"
+  },
   "scripts": {
     "check": "node --version && npm --version",
     "docs": "find docs -maxdepth 1 -type f -name '*.md' -print | sort",
+    "test:coverage": "node --import tsx --test --experimental-test-coverage",
     "live:validate": "tsx scripts/live-validations.mjs",
     "live:validate:agy": "tsx scripts/live-validations.mjs agy",
     "live:validate:claude": "tsx scripts/live-validations.mjs claude",

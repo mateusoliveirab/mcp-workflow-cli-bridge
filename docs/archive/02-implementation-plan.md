@@ -22,9 +22,9 @@ Exit criteria:
 
 Build a local MCP server exposing:
 
-- `code_cli_bridge.run_agent`
-- `code_cli_bridge.validate_route`
-- `code_cli_bridge.providers`
+- `clibridge.run_agent`
+- `clibridge.validate_route`
+- `clibridge.providers`
 
 Initial implementation can be Node.js ESM.
 

@@ -6,7 +6,7 @@ This manifest maps the absolute locations and summaries of all architecture audi
 
 ## 1. Codebase Audit & Refactoring
 *   **Artifact Path:** [project-audit.md](file:///home/ubuntu/.gemini/antigravity-cli/brain/e130ff38-59cf-4807-8351-9e7f036d7f1e/project-audit.md)
-*   **Summary:** Complete audit of the `mcp-workflow-cli-bridge` project against Amazon writing and documentation standards. It flags false claims (audit logs/concurrency), absolute paths, unhandled JSON parsing edge cases, and dead configurations. It documents the resolution of every blocking and warning issue, raising the codebase professionalism score to **9.8/10**.
+*   **Summary:** Complete audit of the `clibridge` project against Amazon writing and documentation standards. It flags false claims (audit logs/concurrency), absolute paths, unhandled JSON parsing edge cases, and dead configurations. It documents the resolution of every blocking and warning issue, raising the codebase professionalism score to **9.8/10**.
 
 ## 2. Multi-Agent Dev Loop Orchestration Design
 *   **Artifact Path:** [multi_agent_workflow_design.md](file:///home/ubuntu/.gemini/antigravity-cli/brain/e130ff38-59cf-4807-8351-9e7f036d7f1e/multi_agent_workflow_design.md)

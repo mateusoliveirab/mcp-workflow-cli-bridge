@@ -1,0 +1,63 @@
+{
+  "repository": {
+    "name": "headroom",
+    "defaultBranch": "main",
+    "publicRepo": true
+  },
+  "contribution": {
+    "branchPrefix": "contrib/",
+    "requireCleanWorktree": true,
+    "allowPublish": true,
+    "draftPr": true
+  },
+  "rules": {
+    "files": [
+      "CONTRIBUTING.md",
+      ".github/PULL_REQUEST_TEMPLATE.md",
+      "CODE_OF_CONDUCT.md",
+      "CHANGELOG.md",
+      "Makefile",
+      ".pre-commit-config.yaml",
+      ".commitlintrc.json",
+      "scripts/install-git-hooks.sh",
+      "scripts/pr-governance.py",
+      ".github/workflows/ci.yml",
+      ".github/workflows/pr-health.yml",
+      ".github/workflows/rust.yml"
+    ],
+    "requireDiscovery": true
+  },
+  "validation": {
+    "commands": [
+      "uv run ruff check .",
+      "uv run ruff format --check .",
+      "uv run mypy headroom --ignore-missing-imports",
+      "uv run pytest"
+    ],
+    "stressCommands": [
+      "uv run make ci-precheck"
+    ]
+  },
+  "policy": {
+    "issueFirstChangeTypes": [
+      "feature",
+      "architecture",
+      "dependency"
+    ],
+    "blockedChangeTypes": [
+      "refactor-only",
+      "test-ci-only"
+    ],
+    "requireMaintainerOkForIssueFirst": true,
+    "requireRealBehaviorProof": true,
+    "requireReproductionForBugfix": true,
+    "requireChangelogForUserFacing": true
+  },
+  "review": {
+    "requireReview": true
+  },
+  "pr": {
+    "titlePrefix": "",
+    "labels": []
+  }
+}

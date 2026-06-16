@@ -126,7 +126,7 @@ export async function runAgent(input: AgentInput, options: RunAgentOptions = {})
 
       const isEligibleForFallback = executionError instanceof BridgeError && eligibleCodes.includes(executionError.code)
 
-      if (isEligibleForFallback && fallbacks.length > 0) {
+      if (isEligibleForFallback && !request.disableFallback && fallbacks.length > 0) {
         let lastError: any = executionError
         for (const fallbackProvider of fallbacks) {
           try {

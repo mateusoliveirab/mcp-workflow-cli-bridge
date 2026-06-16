@@ -9,8 +9,13 @@ Welcome to the documentation for the MCP Workflow CLI Bridge.
 These documents describe the current state of the bridge:
 
 *   **[Architecture Spec](architecture.md)** — Design principles, routing engine, and contract definitions.
+*   **[Workflow Executor Contract](workflow-executor-contract.md)** — Generic MCP workflow execution contract and JSON workflow file format.
 *   **[Known Gotchas & Constraints](gotchas.md)** — Non-obvious constraints regarding execution VMs, shell environments, and model mappings.
 *   **[Plugin Installation Guide](plugin-installation.md)** — Guide on loading the bridge as a local Codex plugin.
+
+## Workflow Patterns
+
+*   **[GitHub Contribution](workflows/github-contribution.md)** — Discover repo rules, branch, implement, validate, stress-test, review, describe, and optionally publish a contribution artifact for a specific repository.
 
 ---
 

@@ -1,11 +1,11 @@
 ---
-name: workflow-cli-bridge
-description: Use when designing, testing, or integrating the MCP Workflow CLI Bridge MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude. Trigger for "workflow bridge", "MCP workflow CLI bridge", "code_cli_bridge", adapter routes, provider adapters, or bridge MCP setup.
+name: clibridge
+description: Use when designing, testing, or integrating the clibridge MCP broker that routes Claude Dynamic Workflow agent work to Codex, OpenCode, Gemini CLI, or Claude. Trigger for "workflow bridge", "clibridge", "cli_bridge", adapter routes, provider adapters, or bridge MCP setup.
 ---
 
-# Workflow CLI Bridge
+# CLI Bridge (clibridge)
 
-Use this skill when working on the MCP Workflow CLI Bridge project.
+Use this skill when working on the clibridge project.
 
 ## Core Architecture
 
@@ -15,7 +15,7 @@ selected agent work to local CLIs through a broker:
 ```txt
 Claude Dynamic Workflow
   -> Claude proxy subagent
-  -> MCP tool code_cli_bridge.run_agent
+  -> MCP tool clibridge.run_agent
   -> local broker
   -> provider adapter
   -> Codex/OpenCode/Gemini/Claude
@@ -23,14 +23,22 @@ Claude Dynamic Workflow
 
 Do not migrate `.claude/workflows/*.js` into skills or shell scripts.
 
-## Primary Commands
+## Dynamic Discovery & CLI Usage
 
-From the plugin/project root:
+Rather than relying on static documentation that may become outdated, you should query the local `bridge-cli` tool to inspect registered workflows, phase schemas, and contract rules at runtime:
 
 ```bash
-npm test
-npm run mcp
-node -e "import('./src/mcp/create-server.ts').then(({ createMcpServer }) => console.log(Boolean(createMcpServer())))"
+# List all registered workflows in the project
+node --import tsx bin/bridge-cli.mjs list
+
+# Inspect a specific workflow's phases and capabilities
+node --import tsx bin/bridge-cli.mjs info <workflow-name>
+
+# Print the formal generic executor contract
+node --import tsx bin/bridge-cli.mjs doc
+
+# Run a declarative JSON workflow directly (useful for testing)
+node --import tsx bin/bridge-cli.mjs run <workflow-path> --task "description" [--dry-run]
 ```
 
 ## Important Files

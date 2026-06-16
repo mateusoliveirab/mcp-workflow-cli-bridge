@@ -1,0 +1,35 @@
+{
+  "name": "greetings-research",
+  "description": "Research greetings in a specified city and generate a markdown file.",
+  "inputDefaults": {
+    "city": "Salvador",
+    "filename": "salvador_greetings.md"
+  },
+  "phases": [
+    {
+      "name": "policy",
+      "kind": "policy",
+      "assertions": [
+        {
+          "input": "city",
+          "notEquals": "",
+          "message": "A target city must be specified."
+        }
+      ]
+    },
+    {
+      "name": "research",
+      "kind": "agent",
+      "provider": "gemini",
+      "prompt": "Determine how people in the city '{{inputs.city}}' say hi or greet each other. Write a structured markdown file named '{{inputs.filename}}' in the current working directory containing your research. Ensure the file contains at least 3 distinct greetings/slang expressions, their meaning, and usage context. Verify the file exists and is written correctly."
+    },
+    {
+      "name": "validate",
+      "kind": "shell",
+      "commands": [
+        "cat {{inputs.filename}}",
+        "grep -q -i '{{inputs.city}}' {{inputs.filename}}"
+      ]
+    }
+  ]
+}
