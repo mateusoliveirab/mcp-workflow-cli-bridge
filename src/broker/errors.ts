@@ -33,7 +33,7 @@ export const ErrorCode = Object.freeze({
   OUTPUT_PARSE_FAILED: 'OUTPUT_PARSE_FAILED',
   SCHEMA_VALIDATION_FAILED: 'SCHEMA_VALIDATION_FAILED',
   PERMISSION_DENIED: 'PERMISSION_DENIED',
-  RATE_LIMITED: 'RATE_LIMITED',     // Reserved: not yet thrown by any adapter.
+  RATE_LIMITED: 'RATE_LIMITED',
   CANCELLED: 'CANCELLED',          // Reserved: not yet thrown by any adapter.
   UNKNOWN_PROVIDER_ERROR: 'UNKNOWN_PROVIDER_ERROR',
 })

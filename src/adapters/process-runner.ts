@@ -8,6 +8,17 @@ export function tail(text: string, maxLength = 4000): string {
   return text.length > maxLength ? text.slice(-maxLength) : text
 }
 
+// Patterns observed across provider CLIs (Anthropic, OpenAI, Google) for
+// rate-limit/quota exhaustion. Matched case-insensitively against combined
+// stdout+stderr so the broker can distinguish this from a generic process
+// failure and route fallback decisions on a real signal instead of any
+// non-zero exit code.
+const RATE_LIMIT_PATTERN = /rate.?limit|too many requests|quota exceeded|resource_exhausted|429|insufficient_quota|credit balance/i
+
+export function isRateLimitError(output: string): boolean {
+  return RATE_LIMIT_PATTERN.test(output)
+}
+
 export const runProcess: RunProcessFn = async (command, args, options = {}) => {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
   const startedAt = Date.now()
@@ -56,7 +67,9 @@ export const runProcess: RunProcessFn = async (command, args, options = {}) => {
 
       const durationMs = Date.now() - startedAt
       if (code !== 0) {
-        reject(new BridgeError(ErrorCode.PROCESS_EXIT_NONZERO, `${command} exited with code ${code}.`, {
+        const combinedOutput = `${stdout}\n${stderr}`
+        const errorCode = isRateLimitError(combinedOutput) ? ErrorCode.RATE_LIMITED : ErrorCode.PROCESS_EXIT_NONZERO
+        reject(new BridgeError(errorCode, `${command} exited with code ${code}.`, {
           recoverable: true,
           details: { code, stdoutTail: tail(stdout), stderrTail: tail(stderr) },
         }))
