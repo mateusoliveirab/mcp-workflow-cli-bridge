@@ -5,13 +5,9 @@ import { geminiAdapter } from './gemini.ts'
 import { opencodeAdapter } from './opencode.ts'
 import { createConfigAdapter } from './config-runner.ts'
 import type { ProviderAdapter } from './contract.ts'
-import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
 import type { CliAdapterConfig } from './config-types.ts'
+import adaptersConfig from './adapters-config.json' with { type: 'json' }
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const adaptersConfig = JSON.parse(readFileSync(join(__dirname, 'adapters-config.json'), 'utf8'))
 
 export const defaultAdapters: Readonly<Record<string, ProviderAdapter>> = Object.freeze({
   agy: agyAdapter,

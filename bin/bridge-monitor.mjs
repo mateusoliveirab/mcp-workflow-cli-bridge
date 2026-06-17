@@ -5,7 +5,7 @@
 //   node --import tsx bin/bridge-monitor.mjs            # live
 //   node --import tsx bin/bridge-monitor.mjs --once     # single frame, then exit
 //   node --import tsx bin/bridge-monitor.mjs --run <id> # focus one run
-import { listRuns, readRun } from '../src/workflows/run-state.ts'
+import { listRuns, readRun } from '../dist/workflows/run-state.js'
 
 const args = process.argv.slice(2)
 const once = args.includes('--once')

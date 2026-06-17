@@ -2,10 +2,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { runWorkflow } from '../src/workflows/workflow-executor.ts'
+import { runWorkflow } from '../dist/workflows/workflow-executor.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const workflowsConfigPath = path.join(__dirname, '..', 'src', 'workflows', 'workflows-config.json')
+const workflowsConfigPath = path.join(__dirname, '..', 'dist', 'workflows', 'workflows-config.json')
 const contractPath = path.join(__dirname, '..', 'docs', 'workflow-executor-contract.md')
 
 const args = process.argv.slice(2)

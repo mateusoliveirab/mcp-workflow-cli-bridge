@@ -12,9 +12,11 @@ Node.js >=20.19.4 · TypeScript · @modelcontextprotocol/sdk · tsx · node:test
 - **Safe Pushing & Clean** — Git push or branch reset/clean commands require explicit user confirmation.
 
 ## Commands
+- `npm run build` — Compile TypeScript to JavaScript using esbuild.
 - `npm test` — Run all unit tests.
 - `npm run test:coverage` — Run unit tests with code coverage report.
 - `npm run typecheck` — Run TypeScript type checking.
 - `npm run live:validate` — Run strict validation against local CLI binaries (with fallbacks disabled).
 - `npm run smoke` — Dry-run validation of provider configurations.
+
 
