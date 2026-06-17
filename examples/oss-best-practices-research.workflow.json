@@ -1,0 +1,32 @@
+{
+  "name": "oss-best-practices-research",
+  "description": "Research current community best practices for MCP/CLI-dispatcher projects, then synthesize concrete, high-leverage recommendations grounded in this repo.",
+  "inputDefaults": {
+    "researchFile": "docs/research/community-best-practices.md",
+    "synthesisFile": "docs/research/clibridge-recommendations.md"
+  },
+  "phases": [
+    {
+      "name": "research",
+      "kind": "agent",
+      "provider": "gemini",
+      "skipPermissions": true,
+      "prompt": "You have access to real-time web search tools. Use them. Research current (2024-2025) community best practices for local-first CLI/agent dispatcher and MCP (Model Context Protocol) server projects similar to OpenCode, Aider, Continue, and Cline. Specifically investigate and CITE REAL SOURCES (with URLs) for: 1) Architecture patterns for multi-provider CLI routing/broker tools (adapter pattern, capability-based routing, plugin systems). 2) MCP server design conventions and emerging ecosystem standards (tool naming, schema validation, error envelopes, resource vs tool design). 3) Open-source contribution practices: CONTRIBUTING.md structure, PR/issue templates, semantic versioning & changesets, CI gating strategies. 4) Testing & validation methodologies for CLI-process-spawning tools (mocking subprocess calls, golden-file testing, live-validation/smoke-testing patterns, sandboxing). 5) Documentation & discoverability practices that help adoption (README structure, examples, capability matrices). Write a thorough markdown report to the file '{{inputs.researchFile}}' in the current working directory, creating parent directories if needed. Include concrete URLs/sources you found. Call out anything DIRECTLY applicable to a project named 'clibridge' that routes agent tasks to local CLIs (claude, codex, gemini, opencode, agy, ollama) via MCP, with capability-based routing, JSON schema validation, and declarative JSON workflows. After writing the file, output the full markdown content as your final response too."
+    },
+    {
+      "name": "synthesis",
+      "kind": "agent",
+      "provider": "claude",
+      "skipPermissions": true,
+      "prompt": "Read this research on community best practices for MCP/CLI-bridge tools:\n\n{{results.research}}\n\nYou are advising the maintainer of 'clibridge', a local-first MCP server (Node.js/TypeScript) at {{cwd}} that routes agent tasks to local CLIs (claude, codex, gemini, opencode, agy, ollama) via capability-based routing, JSON schema validation, and declarative JSON workflows (see docs/architecture.md and docs/workflow-executor-contract.md in that repo). Inspect the actual repo at {{cwd}} (read the relevant source files, not just docs) before proposing anything. Based on the research above AND what you actually observe in this repo, propose 3-5 CONCRETE, HIGH-LEVERAGE improvements specific to this codebase. For each: (a) what to change, (b) why it matches a real community best practice from the research, (c) the clear, measurable benefit/ROI for this specific project, (d) rough implementation effort (S/M/L). Be skeptical: do not propose generic advice — ground every recommendation in something you actually observed in this repo's current code or docs. Write your final answer in Brazilian Portuguese, as a markdown report, to the file '{{inputs.synthesisFile}}'. Output the full content as your final response too."
+    },
+    {
+      "name": "validate",
+      "kind": "shell",
+      "commands": [
+        "test -f {{inputs.researchFile}} && echo 'research file OK'",
+        "test -f {{inputs.synthesisFile}} && echo 'synthesis file OK'"
+      ]
+    }
+  ]
+}
