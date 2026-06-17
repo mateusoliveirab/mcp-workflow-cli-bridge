@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join, dirname } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -20,7 +20,9 @@ export interface CreateMcpServerOptions {
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const packageJsonPath = join(__dirname, '../../package.json')
+const packageJsonPath = existsSync(join(__dirname, '../../package.json'))
+  ? join(__dirname, '../../package.json')
+  : join(__dirname, '../package.json')
 const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
 
 export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer {
