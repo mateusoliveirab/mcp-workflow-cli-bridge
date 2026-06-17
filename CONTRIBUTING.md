@@ -44,4 +44,4 @@ npm run live:validate
 
 ## Submitting Changes
 - Please ensure all tests pass and TypeScript compiles strictly before opening a pull request.
-- Commit messages should be clear and descriptive.
+- Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, etc.). This repo's `release-please` workflow (`.github/workflows/release-please.yml`) parses commit messages on `main` to decide the next version bump and generate the changelog — non-conforming messages are silently skipped and won't trigger a release.
