@@ -31,7 +31,7 @@ export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer
     version: pkg.version || '0.0.0',
   })
 
-  server.registerTool('clibridge.run_agent', {
+  server.registerTool('run_agent', {
     title: 'Run a workflow agent through a local coding CLI',
     description: 'Routes a Claude workflow agent request to Codex, OpenCode, Gemini, or Claude through the local bridge.',
     inputSchema: AgentInputSchema.shape,
@@ -57,7 +57,7 @@ export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer
     }
   })
 
-  server.registerTool('clibridge.run_workflow', {
+  server.registerTool('run_workflow', {
     title: 'Run a workflow file through local coding CLIs',
     description: 'Loads a declarative workflow file, executes its phases, and delegates agent phases through the local bridge providers.',
     inputSchema: RunWorkflowInputSchema.shape,
@@ -78,7 +78,7 @@ export function createMcpServer(options: CreateMcpServerOptions = {}): McpServer
     }
   })
 
-  server.registerTool('clibridge.providers', {
+  server.registerTool('providers', {
     title: 'List registered provider adapters',
     description: 'Lists provider adapters, capabilities, and whether their CLI command is available on PATH.',
     inputSchema: {},

@@ -43,7 +43,7 @@
 ```
   MCP Client (Claude Desktop, Claude Code, Cursor, Windsurf…)
         │
-        │  clibridge.run_agent (prompt, schema, cwd, attachments)
+        │  run_agent (prompt, schema, cwd, attachments)
         ▼
   ┌─────────────────────────────────────────────────────────┐
   │  clibridge (Local Process Broker & Dispatch Hub)        │
@@ -207,7 +207,7 @@ To use this inside Claude Code, define the server in your project's local `.mcp.
   }
 }
 ```
-Then, create `.claude/agents/workflow-cli-router.md` to map agent work to `clibridge.run_agent`.
+Then, create `.claude/agents/workflow-cli-router.md` to map agent work to `run_agent`.
 
 #### 3. Cursor & Windsurf
 In Cursor or Windsurf, navigate to **Settings** -> **Features** -> **MCP** and add a new MCP Server:
@@ -230,10 +230,10 @@ codex plugin add clibridge@clibridge-local
 
 ## MCP Tools Spec
 
-### `clibridge.providers`
+### `providers`
 Returns all registered provider adapters, their capabilities, and whether their CLI binaries are available on the user's `PATH`.
 
-### `clibridge.run_agent`
+### `run_agent`
 Runs a task on the targeted provider.
 
 #### Parameters:
@@ -269,7 +269,7 @@ Runs a task on the targeted provider.
 }
 ```
 
-### `clibridge.run_workflow`
+### `run_workflow`
 Runs a declarative workflow file through the generic MCP workflow executor. This is the preferred interface when a client wants to execute a full workflow instead of a single provider task.
 
 #### Parameters:
@@ -325,7 +325,7 @@ For repository contribution work, the bridge includes a client-neutral workflow 
 node bin/bridge-contribute.mjs --dry-run "add a focused test for route selection"
 ```
 
-This runs the reference `github-contribution` CLI workflow as a code architecture developer. For MCP clients, prefer `clibridge.run_workflow` with a JSON workflow file such as `examples/headroom-contribution.workflow.json`.
+This runs the reference `github-contribution` CLI workflow as a code architecture developer. For MCP clients, prefer `run_workflow` with a JSON workflow file such as `examples/headroom-contribution.workflow.json`.
 
 ---
 

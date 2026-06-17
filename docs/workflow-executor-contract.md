@@ -2,8 +2,8 @@
 
 The bridge has two layers:
 
-1. `clibridge.run_agent` is the low-level broker primitive. It runs one agent phase through one local CLI provider.
-2. `clibridge.run_workflow` is the workflow executor. It receives a workflow file, interprets phases, gates, and policies, then delegates agent phases through `run_agent`.
+1. `run_agent` is the low-level broker primitive. It runs one agent phase through one local CLI provider.
+2. `run_workflow` is the workflow executor. It receives a workflow file, interprets phases, gates, and policies, then delegates agent phases through `run_agent`.
 
 The MCP server must not grow one tool per workflow. Headroom contribution, release validation, docs review, and future repo-specific flows are workflow files/configs passed into the generic executor.
 
@@ -19,7 +19,7 @@ The MCP server must not grow one tool per workflow. Headroom contribution, relea
 Canonical tool:
 
 ```text
-clibridge.run_workflow
+run_workflow
 ```
 
 Input:

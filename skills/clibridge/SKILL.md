@@ -15,7 +15,7 @@ selected agent work to local CLIs through a broker:
 ```txt
 Claude Dynamic Workflow
   -> Claude proxy subagent
-  -> MCP tool clibridge.run_agent
+  -> MCP tool run_agent
   -> local broker
   -> provider adapter
   -> Codex/OpenCode/Gemini/Claude

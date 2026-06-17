@@ -71,7 +71,7 @@ For MCP clients, use the generic executor tool with a workflow file:
 }
 ```
 
-This calls `clibridge.run_workflow`. The MCP server remains a generic executor; it does not expose Headroom-specific tools.
+This calls `run_workflow`. The MCP server remains a generic executor; it does not expose Headroom-specific tools.
 
 ## Headroom Preset
 
