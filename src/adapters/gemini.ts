@@ -8,7 +8,10 @@ import type { ResolvedRequest, Envelope } from '../types.ts'
 export const runGemini: AdapterFn = async (request: ResolvedRequest, runProcessFn: RunProcessFn = runProcess): Promise<Envelope> => {
   // Use agy (Antigravity CLI) as the engine for gemini provider, specifying a default Gemini model if none is requested.
   const model = request.model || 'Gemini 3.5 Flash (High)'
-  const args = ['--print', '--model', model]
+  // agy's flag parser only binds the prompt as a positional argument when it
+  // directly follows --print; placed after other flags it silently drops the
+  // prompt and falls back to open-ended filesystem exploration.
+  const args = ['--print', request.prompt, '--model', model]
 
   const extraDirs = getExtraDirs(request)
   for (const dirPath of extraDirs) {
@@ -17,8 +20,6 @@ export const runGemini: AdapterFn = async (request: ResolvedRequest, runProcessF
 
   // Antigravity CLI uses --dangerously-skip-permissions instead of --yolo
   if (request.dangerouslySkipPermissions) args.push('--dangerously-skip-permissions')
-
-  args.push(request.prompt)
 
   // agy auto-indexes its process working directory as codebase context, so
   // running it inside the project dir causes it to explore the full repo even

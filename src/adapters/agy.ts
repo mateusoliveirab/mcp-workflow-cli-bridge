@@ -9,7 +9,10 @@ import type { ResolvedRequest, Envelope } from '../types.ts'
 // `structuredOutput: false` capability makes the broker reject schema
 // requests before dispatch (see contract.requiredCapabilities).
 export const runAgy: AdapterFn = async (request: ResolvedRequest, runProcessFn: RunProcessFn = runProcess): Promise<Envelope> => {
-  const args = ['--print']
+  // agy's flag parser only binds the prompt as a positional argument when it
+  // directly follows --print; placed after other flags it silently drops the
+  // prompt and falls back to open-ended filesystem exploration.
+  const args = ['--print', request.prompt]
 
   const extraDirs = getExtraDirs(request)
   for (const dir of extraDirs) {
@@ -24,8 +27,6 @@ export const runAgy: AdapterFn = async (request: ResolvedRequest, runProcessFn: 
   // by the broker / bridge policy) to agy's CLI option — same contract as
   // codex and opencode, not a per-adapter default.
   if (request.dangerouslySkipPermissions) args.push('--dangerously-skip-permissions')
-
-  args.push(request.prompt)
 
   // agy auto-indexes its process working directory as codebase context, so
   // running it inside the project dir causes it to explore the full repo even

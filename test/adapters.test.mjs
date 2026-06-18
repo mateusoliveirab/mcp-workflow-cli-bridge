@@ -70,6 +70,7 @@ test('runAgy does not add cwd as --add-dir automatically', async () => {
   assert.equal(capturedOptions.cwd, os.homedir())
 })
 
+
 test('runAgy builds correct arguments with addDirs (cwd not duplicated)', async () => {
   let capturedArgs
   const mockRunProcess = async (cmd, args, options) => {
@@ -86,11 +87,11 @@ test('runAgy builds correct arguments with addDirs (cwd not duplicated)', async 
   assert.equal(result.ok, true)
   assert.deepEqual(capturedArgs, [
     '--print',
+    'hello',
     '--add-dir',
     '/other/dir1',
     '--add-dir',
     '/other/dir2',
-    'hello'
   ])
 })
 
@@ -111,8 +112,8 @@ test('runAgy omits skip-permissions by default and adds it only when opted in', 
   }, mockRunProcess)
   assert.deepEqual(capturedArgs, [
     '--print',
+    'hello',
     '--dangerously-skip-permissions',
-    'hello'
   ])
 })
 
@@ -135,11 +136,11 @@ test('runAgy builds correct arguments with addDir and addDirs (cwd not included)
   assert.equal(result.ok, true)
   assert.deepEqual(capturedArgs, [
     '--print',
+    'hello',
     '--add-dir',
     '/other/dir1',
     '--add-dir',
     '/other/dir2',
-    'hello'
   ])
   // explicit dirs requested → use the project cwd so relative paths resolve
   assert.equal(capturedOptions.cwd, '/workspace/dir')
@@ -218,13 +219,13 @@ test('runGemini builds correct arguments with addDir and addDirs', async () => {
   assert.equal(result.ok, true)
   assert.deepEqual(capturedArgs, [
     '--print',
+    'hello',
     '--model',
     'Gemini 3.5 Flash (High)',
     '--add-dir',
     '/other/dir1',
     '--add-dir',
     '/other/dir2',
-    'hello'
   ])
 })
 
