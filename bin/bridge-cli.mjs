@@ -65,6 +65,8 @@ Commands:
                           --contract-format <format>
                                                 Render agent-to-agent object context as json or toon.
                           --timeout-ms <ms>     Timeout passed to agent phases.
+                          --dangerously-skip-permissions
+                                                Skip permission prompts in provider CLIs (e.g. claude).
   help                  Show this help menu.
 `)
 }
@@ -130,6 +132,7 @@ async function runWorkflowCmd() {
   let inputs = {}
   let contractFormat
   let timeoutMs
+  let dangerouslySkipPermissions = false
 
   for (let i = 2; i < args.length; i++) {
     if (args[i] === '--cwd') {
@@ -157,6 +160,8 @@ async function runWorkflowCmd() {
         process.exit(1)
       }
       i++
+    } else if (args[i] === '--dangerously-skip-permissions') {
+      dangerouslySkipPermissions = true
     }
   }
 
@@ -171,6 +176,7 @@ async function runWorkflowCmd() {
   console.log(`Dry-run: ${dryRun}`)
   if (contractFormat) console.log(`Contract format: ${contractFormat}`)
   if (timeoutMs) console.log(`Timeout: ${timeoutMs}ms`)
+  console.log(`Dangerously skip permissions: ${dangerouslySkipPermissions}`)
 
   try {
     const result = await runWorkflow({
@@ -181,7 +187,7 @@ async function runWorkflowCmd() {
       inputs,
       contractFormat,
       timeoutMs,
-      dangerouslySkipPermissions: true
+      dangerouslySkipPermissions
     })
 
     console.log('\n======================================')

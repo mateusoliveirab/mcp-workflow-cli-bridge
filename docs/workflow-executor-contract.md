@@ -32,6 +32,7 @@ Input:
   "dryRun": true,
   "contractFormat": "toon",
   "timeoutMs": 90000,
+  "dangerouslySkipPermissions": true,
   "inputs": {
     "changeType": "bugfix",
     "publishTarget": "pr",
@@ -46,6 +47,8 @@ The executor loads `workflowPath`, runs phases in order, records run-state under
 `contractFormat` is optional and defaults to `json`. When set to `toon`, object-valued template variables in agent prompts, such as `{{inputs}}` or `{{results}}`, render as TOON instead of pretty JSON. Shell command templates keep JSON-style rendering to avoid changing command semantics.
 
 `timeoutMs` is optional and is forwarded to each delegated `run_agent` call. It is useful for live validation workflows that exercise multiple real provider CLIs.
+
+`dangerouslySkipPermissions` is optional and requests unattended permission skipping for providers that support it. The CLI exposes this as `--dangerously-skip-permissions`.
 
 ## Workflow File Shape
 

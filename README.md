@@ -287,6 +287,7 @@ Runs a declarative workflow file through the generic MCP workflow executor. This
 | `routeConfigPath` | `string` | No | Optional `.json` or `.toon` route config for provider selection |
 | `contractFormat` | `"json"` or `"toon"` | No | Renders object context in agent prompts as JSON or TOON. Defaults to `json` |
 | `timeoutMs` | `number` | No | Timeout passed to each agent phase |
+| `dangerouslySkipPermissions` | `boolean` | No | Requests unattended permission skipping for providers that support it |
 
 #### Example Call:
 ```json
@@ -300,7 +301,8 @@ Runs a declarative workflow file through the generic MCP workflow executor. This
     "publishTarget": "pr"
   },
   "contractFormat": "toon",
-  "timeoutMs": 90000
+  "timeoutMs": 90000,
+  "dangerouslySkipPermissions": true
 }
 ```
 
