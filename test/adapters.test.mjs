@@ -217,18 +217,18 @@ test('runGemini builds correct arguments with addDir and addDirs', async () => {
 
   assert.equal(result.ok, true)
   assert.deepEqual(capturedArgs, [
-    '--prompt',
-    'hello',
-    '--output-format',
-    'text',
-    '--include-directories',
+    '--print',
+    '--model',
+    'Gemini 3.5 Flash (High)',
+    '--add-dir',
     '/other/dir1',
-    '--include-directories',
-    '/other/dir2'
+    '--add-dir',
+    '/other/dir2',
+    'hello'
   ])
 })
 
-test('runGemini appends --yolo when skip-permissions is requested', async () => {
+test('runGemini appends --dangerously-skip-permissions when skip-permissions is requested', async () => {
   let capturedArgs
   const mockRunProcess = async (cmd, args) => {
     capturedArgs = args
@@ -242,7 +242,7 @@ test('runGemini appends --yolo when skip-permissions is requested', async () => 
   }, mockRunProcess)
 
   assert.equal(result.ok, true)
-  assert.ok(capturedArgs.includes('--yolo'))
+  assert.ok(capturedArgs.includes('--dangerously-skip-permissions'))
 })
 
 test('runOpenCode builds correct arguments with addDir and addDirs', async () => {

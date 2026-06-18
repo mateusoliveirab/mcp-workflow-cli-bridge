@@ -14,6 +14,10 @@ const PROVIDER_PROBES = Object.freeze({
     kind: 'command',
     args: ['--version'],
   },
+  gemini: {
+    kind: 'command',
+    args: ['--version'],
+  },
 })
 
 export function parseLiveValidationArgs(argv) {

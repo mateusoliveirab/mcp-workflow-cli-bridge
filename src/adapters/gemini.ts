@@ -1,3 +1,4 @@
+import os from 'node:os'
 import { BridgeError, ErrorCode } from '../broker/errors.ts'
 import { normalizeSuccess, getExtraDirs } from './common.ts'
 import { runProcess } from './process-runner.ts'
@@ -5,19 +6,28 @@ import type { AdapterFn, ProviderAdapter, RunProcessFn } from './contract.ts'
 import type { ResolvedRequest, Envelope } from '../types.ts'
 
 export const runGemini: AdapterFn = async (request: ResolvedRequest, runProcessFn: RunProcessFn = runProcess): Promise<Envelope> => {
-  const args = ['--prompt', request.prompt, '--output-format', request.schema ? 'json' : 'text']
-  if (request.model) args.push('--model', request.model)
+  // Use agy (Antigravity CLI) as the engine for gemini provider, specifying a default Gemini model if none is requested.
+  const model = request.model || 'Gemini 3.5 Flash (High)'
+  const args = ['--print', '--model', model]
 
-  for (const dirPath of getExtraDirs(request)) {
-    args.push('--include-directories', dirPath)
+  const extraDirs = getExtraDirs(request)
+  for (const dirPath of extraDirs) {
+    args.push('--add-dir', dirPath)
   }
 
-  // Unattended auto-approval so gemini can run tools / write files in headless
-  // mode. Only emitted when the request explicitly opts in.
-  if (request.dangerouslySkipPermissions) args.push('--yolo')
+  // Antigravity CLI uses --dangerously-skip-permissions instead of --yolo
+  if (request.dangerouslySkipPermissions) args.push('--dangerously-skip-permissions')
 
-  const processResult = await runProcessFn('gemini', args, {
-    cwd: request.cwd,
+  args.push(request.prompt)
+
+  // agy auto-indexes its process working directory as codebase context, so
+  // running it inside the project dir causes it to explore the full repo even
+  // when no --add-dir flag is given. When no explicit context dirs are
+  // requested, use the home dir as a neutral cwd to avoid this.
+  const processCwd = extraDirs.length > 0 ? request.cwd : os.homedir()
+
+  const processResult = await runProcessFn('agy', args, {
+    cwd: processCwd,
     env: request.env,
     timeoutMs: request.timeoutMs,
   })
@@ -36,11 +46,11 @@ export const runGemini: AdapterFn = async (request: ResolvedRequest, runProcessF
   })
 }
 
-// skipPermissions is true: gemini's unattended flag (--yolo) is wired above, so
+// skipPermissions is true: agy's unattended flag (--dangerously-skip-permissions) is wired above, so
 // the broker may dispatch skip-permission requests and gemini auto-approves tool
 // use and file edits in headless mode.
 export const geminiAdapter: ProviderAdapter = {
-  command: 'gemini',
+  command: 'agy',
   capabilities: { structuredOutput: true, images: false, sandbox: false, skipPermissions: true },
   run: runGemini,
 }
@@ -71,3 +81,4 @@ function parseGeminiStructuredResponse(stdout: string): unknown {
     })
   }
 }
+
