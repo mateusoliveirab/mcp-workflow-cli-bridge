@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 // Live TUI monitor for MCP Workflow CLI Bridge runs.
 // Zero-dependency ANSI renderer that tails .bridge-runs/<id>.jsonl via the
-// run-state contract (listRuns / readRun). Run with the tsx loader:
+// run-state contract (readRun). Run with the tsx loader:
 //   node --import tsx bin/bridge-monitor.mjs            # live
 //   node --import tsx bin/bridge-monitor.mjs --once     # single frame, then exit
 //   node --import tsx bin/bridge-monitor.mjs --run <id> # focus one run
-import { listRuns, readRun } from '../dist/workflows/run-state.js'
+//   node --import tsx bin/bridge-monitor.mjs --all      # disable the 20-run cap
+import fs from 'node:fs'
+import path from 'node:path'
+import { readRun } from '../dist/workflows/run-state.js'
 
 const args = process.argv.slice(2)
 const once = args.includes('--once')
+const showAll = args.includes('--all')
 const runFilter = (() => {
   const i = args.indexOf('--run')
   return i >= 0 ? args[i + 1] : null
@@ -30,20 +34,77 @@ const yellow = s => c('33', s)
 const cyan = s => c('36', s)
 
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+const RUN_CAP = 20
 
-function phaseIcon(status, tick) {
-  switch (status) {
-    case 'done': return green('✓')
-    case 'failed': return red('✗')
-    case 'running': return yellow(SPINNER[tick % SPINNER.length])
-    default: return dim('·')
+// readRun() fully parses a run's .jsonl every call. Re-reading every file on
+// every frame is wasteful once history grows, so we cache parsed state per
+// runId keyed by the file's mtimeMs and only re-read files that changed.
+const runsDir = path.join(process.cwd(), '.bridge-runs')
+const stateCache = new Map()
+
+function scanRuns() {
+  let files
+  try {
+    files = fs.readdirSync(runsDir)
+  } catch {
+    files = []
   }
+  const seen = new Set()
+  const states = []
+  for (const file of files) {
+    if (!file.endsWith('.jsonl')) continue
+    const runId = file.slice(0, -6)
+    seen.add(runId)
+    let mtimeMs
+    try {
+      mtimeMs = fs.statSync(path.join(runsDir, file)).mtimeMs
+    } catch {
+      continue
+    }
+    const cached = stateCache.get(runId)
+    if (cached && cached.mtimeMs === mtimeMs) {
+      states.push(cached.state)
+      continue
+    }
+    const state = readRun(runId)
+    if (state) {
+      stateCache.set(runId, { mtimeMs, state })
+      states.push(state)
+    } else {
+      stateCache.delete(runId)
+    }
+  }
+  for (const cachedId of stateCache.keys()) {
+    if (!seen.has(cachedId)) stateCache.delete(cachedId)
+  }
+  return states
 }
 
-function statusBadge(status) {
-  if (status === 'done') return green('● done')
-  if (status === 'failed') return red('● failed')
-  return yellow('● running')
+function selectVisible(states, all) {
+  const running = states.filter(s => s.status === 'running').sort((a, b) => b.updatedAt - a.updatedAt)
+  const others = states.filter(s => s.status !== 'running').sort((a, b) => b.updatedAt - a.updatedAt)
+
+  if (all) {
+    return { visible: [...running, ...others], hiddenRunning: 0, hiddenOlder: 0 }
+  }
+
+  let visibleRunning
+  let hiddenRunning
+  let visibleOther
+  let hiddenOlder
+  if (running.length > RUN_CAP) {
+    visibleRunning = running.slice(0, RUN_CAP)
+    hiddenRunning = running.length - RUN_CAP
+    visibleOther = []
+    hiddenOlder = others.length
+  } else {
+    visibleRunning = running
+    hiddenRunning = 0
+    const remaining = RUN_CAP - visibleRunning.length
+    visibleOther = others.slice(0, remaining)
+    hiddenOlder = others.length - visibleOther.length
+  }
+  return { visible: [...visibleRunning, ...visibleOther], hiddenRunning, hiddenOlder }
 }
 
 function fmtDuration(ms) {
@@ -55,51 +116,97 @@ function fmtDuration(ms) {
   return `${m}m${Math.round(s % 60)}s`
 }
 
-function renderRun(state, tick) {
-  const lines = []
+function truncateDescription(d) {
+  return d.length > 80 ? d.slice(0, 79) + '…' : d
+}
+
+function runStatusText(status) {
+  if (status === 'done') return green('done')
+  if (status === 'failed') return red('failed')
+  return yellow('running')
+}
+
+function renderRunTitle(state, focused) {
   const done = state.phases.filter(p => p.status === 'done').length
   const total = state.phases.length
-  lines.push(
-    `${statusBadge(state.status)}  ${bold(state.workflow)} ${dim(state.runId)}`
-  )
-  const meta = `${dim('phases')} ${done}/${total}   ${dim('elapsed')} ${fmtDuration(state.elapsedMs)}`
-  lines.push('  ' + meta)
-  if (state.description) {
-    const d = state.description.length > 70 ? state.description.slice(0, 67) + '…' : state.description
-    lines.push('  ' + dim(d))
-  }
-  for (const p of state.phases) {
-    const icon = phaseIcon(p.status, tick)
-    const name = p.status === 'running' ? cyan(p.name) : p.name
-    const provider = p.provider ? dim(` [${p.provider}]`) : ''
-    const dur = p.durationMs != null ? dim('  ' + fmtDuration(p.durationMs)) : ''
-    lines.push(`    ${icon} ${name}${provider}${dur}`)
-  }
-  return lines.join('\n')
+  const idPart = focused ? state.runId : state.runId.slice(-8)
+  return `${bold(state.workflow)} · ${runStatusText(state.status)} · ${done}/${total} phases · ${fmtDuration(state.elapsedMs)} · ${dim(idPart)}`
+}
+
+function renderPhases(phases, tick) {
+  const maxName = phases.reduce((m, p) => Math.max(m, p.name.length), 0)
+  return phases.map((p, i) => {
+    const connector = i === phases.length - 1 ? '└─' : '├─'
+    const plainStatus = p.status === 'running' ? `${SPINNER[tick % SPINNER.length]} running` : p.status
+    const paddedStatus = plainStatus.padEnd(9)
+    const status =
+      p.status === 'done' ? green(paddedStatus)
+      : p.status === 'failed' ? red(paddedStatus)
+      : p.status === 'running' ? yellow(paddedStatus)
+      : dim(paddedStatus)
+    const durationPart = p.durationMs != null ? dim(`  ${fmtDuration(p.durationMs)}`) : ''
+    const providerPart = p.provider ? dim(`  [${p.provider}]`) : ''
+    return `  ${connector} ${p.name.padEnd(maxName)}  ${status}${durationPart}${providerPart}`
+  })
+}
+
+function visiblePhasesFor(state) {
+  if (state.status === 'running') return state.phases
+  if (state.status === 'failed') return state.phases.filter(p => p.status !== 'pending')
+  return []
 }
 
 function buildFrame(tick) {
   const out = []
-  out.push(bold(cyan('▍ MCP Workflow CLI Bridge — live runs')))
-  out.push('')
 
-  let runIds
   if (runFilter) {
-    runIds = [runFilter]
-  } else {
-    runIds = listRuns().map(r => r.runId)
+    out.push(bold(cyan(`clibridge run · ${runFilter}`)))
+    out.push('')
+    const state = readRun(runFilter)
+    if (!state) {
+      out.push(dim(`  run "${runFilter}" not found`))
+    } else {
+      out.push(renderRunTitle(state, true))
+      if (state.description) out.push('  ' + dim(truncateDescription(state.description)))
+      out.push(...renderPhases(state.phases, tick))
+      out.push('')
+    }
+    if (!once) out.push(dim('ctrl-c to exit'))
+    return out.join('\n')
   }
 
-  const states = runIds.map(readRun).filter(Boolean)
-  if (states.length === 0) {
-    out.push(dim(runFilter ? `  run "${runFilter}" not found` : '  no runs yet — start a workflow to see it here'))
+  const states = scanRuns()
+  const runningCount = states.filter(s => s.status === 'running').length
+  const archivedCount = states.length - runningCount
+  out.push(bold(cyan(`clibridge runs · ${runningCount} running · ${archivedCount} archived`)))
+  out.push('')
+
+  const { visible, hiddenRunning, hiddenOlder } = selectVisible(states, showAll)
+
+  if (visible.length === 0) {
+    out.push(dim('  no runs yet — start a workflow to see it here'))
   } else {
-    for (const s of states) {
-      out.push(renderRun(s, tick))
+    for (const s of visible) {
+      out.push(renderRunTitle(s, false))
+      if (s.description) out.push('  ' + dim(truncateDescription(s.description)))
+      const phases = visiblePhasesFor(s)
+      if (phases.length) out.push(...renderPhases(phases, tick))
       out.push('')
     }
   }
-  out.push(dim(once ? '' : 'ctrl-c to exit'))
+
+  if (once) {
+    const totalHidden = hiddenRunning + hiddenOlder
+    if (totalHidden > 0) out.push(`${totalHidden} older runs hidden · use --all to show`)
+  } else {
+    let footer = 'ctrl-c to exit'
+    if (hiddenRunning > 0) {
+      footer += ` · ${hiddenRunning} more running hidden · ${hiddenOlder} older runs hidden · use --all to show`
+    } else if (hiddenOlder > 0) {
+      footer += ` · ${hiddenOlder} older runs hidden · use --all to show`
+    }
+    out.push(dim(footer))
+  }
   return out.join('\n')
 }
 

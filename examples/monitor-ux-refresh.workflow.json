@@ -1,0 +1,52 @@
+{
+  "name": "monitor-ux-refresh",
+  "description": "Two independent UX redesign proposals for bin/bridge-monitor.mjs, adversarially critiqued by a third provider, then implemented exactly as specified and gated by typecheck+test.",
+  "inputDefaults": {},
+  "phases": [
+    {
+      "name": "read_current",
+      "kind": "read-files",
+      "files": ["bin/bridge-monitor.mjs", "src/workflows/run-state.ts"]
+    },
+    {
+      "name": "sample_before",
+      "kind": "shell",
+      "commands": ["node bin/bridge-monitor.mjs --once --no-color | head -60"]
+    },
+    {
+      "name": "design_minimal",
+      "kind": "agent",
+      "provider": "claude",
+      "prompt": "Here is the current source of clibridge's live TUI monitor (bin/bridge-monitor.mjs) and the run-state data shape it reads from:\n\n{{results.read_current}}\n\nHere is a real rendered frame from the CURRENT code, with real data (152 historical run files exist on disk, unsorted, no limit):\n\n{{results.sample_before}}\n\nThe maintainer's complaint: 'the UX is horrible, it should feel more Claude-Code-like'. Propose ONE concrete redesign from a MINIMALIST angle: how would the actual Claude Code CLI terminal output (tree connectors like '├─'/'└─', muted/dim secondary text, a single restrained accent color, status as words not colored bullet dots, no large block-glyph banner) render this same data? Be concrete: describe the exact line-by-line layout for one run entry and for the page header/footer, and state explicitly how you'd handle the fact that ALL historical runs (150+) currently get listed forever with no sort/limit — that's a real bug in the current code, not just a style issue. Do not write code yet, just the precise spec + rationale. End your response with the 3 biggest risks/failure-modes of YOUR OWN proposal (be self-critical, not just affirmative)."
+    },
+    {
+      "name": "design_dashboard",
+      "kind": "agent",
+      "provider": "gemini",
+      "prompt": "Here is the current source of clibridge's live TUI monitor (bin/bridge-monitor.mjs) and the run-state data shape it reads from:\n\n{{results.read_current}}\n\nHere is a real rendered frame from the CURRENT code, with real data (152 historical run files exist on disk, unsorted, no limit):\n\n{{results.sample_before}}\n\nThe maintainer's complaint: 'the UX is horrible, it should feel more Claude-Code-like'. Propose ONE concrete redesign from an OPERATIONAL-CLARITY angle (optimized for someone scanning many concurrent/historical runs quickly), while still avoiding heavy color/ASCII-art and staying close to how Claude Code's own CLI renders status (sparse color, clear hierarchy, words over icons where ambiguous). Be concrete: describe the exact line-by-line layout for one run entry and for the page header/footer, and state explicitly how you'd handle the fact that ALL historical runs (150+) currently get listed forever with no sort/limit — that's a real bug in the current code, not just a style issue. Do not write code yet, just the precise spec + rationale. End your response with the 3 biggest risks/failure-modes of YOUR OWN proposal (be self-critical, not just affirmative)."
+    },
+    {
+      "name": "critique",
+      "kind": "agent",
+      "provider": "codex",
+      "prompt": "Two independent designers proposed redesigns for clibridge's live TUI monitor (bin/bridge-monitor.mjs). You did not write either and have no attachment to them — your job is to be a skeptical reviewer, not to default to whichever sounds more polished on first read.\n\nCurrent code + real sample output for context:\n{{results.read_current}}\n\n{{results.sample_before}}\n\nProposal A (minimalist angle):\n{{results.design_minimal}}\n\nProposal B (operational-clarity angle):\n{{results.design_dashboard}}\n\nFor EACH proposal, concretely test it against these failure modes before forming an opinion: (1) Does it actually solve the unsorted/unbounded 150+ historical runs problem, with a specific rule (not hand-waved)? (2) Does it preserve every existing CLI contract: --once, --run <id>, --interval <ms>, --no-color, SIGINT/SIGTERM cursor restore, non-TTY output (no ANSI codes if stdout is piped)? (3) Is it actually MORE legible for a human scanning at a glance, or just differently styled — give a concrete scenario where it wins or loses? (4) Implementation risk — does it require new dependencies or just restructure the existing zero-dependency ANSI renderer?\n\nAfter this analysis, decide: pick A, pick B, or specify an explicit hybrid (name exactly which elements from which). Do not merge everything from both by default — only combine elements you can justify individually via the failure-mode analysis above. Output your final decision as a PRECISE implementation spec: exact header line, exact per-run line(s) including indentation/connectors, exact sort/limit rule for historical runs, exact footer/hint line, and exact behavior preserved for --once/--run/--interval/--no-color/non-TTY. This spec will be implemented literally by the next phase, so leave no ambiguity."
+    },
+    {
+      "name": "implement",
+      "kind": "agent",
+      "provider": "claude",
+      "skipPermissions": true,
+      "prompt": "Implement the following UI/UX spec for bin/bridge-monitor.mjs EXACTLY as written, in the repo at {{cwd}}. This is a zero-dependency ANSI TUI script (no new npm dependencies). Preserve all existing CLI flags and their exact semantics (--once, --run <id>, --interval <ms>, --no-color) and the SIGINT/SIGTERM cursor-restore behavior, and keep using listRuns/readRun from ../dist/workflows/run-state.js exactly as today (no changes to run-state.ts). Read the file first, then edit it in place.\n\nSpec to implement:\n{{results.critique}}\n\nAfter editing, run `npm run typecheck` and `npm test` yourself and fix any failures before finishing. Do not touch any other files."
+    },
+    {
+      "name": "gate",
+      "kind": "shell",
+      "commands": ["npm run typecheck", "npm test"]
+    },
+    {
+      "name": "sample_after",
+      "kind": "shell",
+      "commands": ["node bin/bridge-monitor.mjs --once --no-color | head -60", "node bin/bridge-monitor.mjs --once | head -60"]
+    }
+  ]
+}
