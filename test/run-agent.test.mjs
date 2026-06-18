@@ -309,6 +309,28 @@ test('runAgent rejects sandbox requests for a provider that lacks sandbox', asyn
   assert.equal(dispatched, false)
 })
 
+test('runAgent adds read-only sandbox for read-only requests when provider supports sandbox', async () => {
+  let seenRequest
+  const result = await runAgent({
+    workflow: 'w', phase: 'Create', label: 'l', cwd, prompt: 'go', access: 'read-only',
+  }, {
+    config: { defaultProvider: 'mock' },
+    loadAgent: false,
+    adapters: {
+      mock: {
+        capabilities: { structuredOutput: true, images: true, sandbox: true, skipPermissions: true },
+        run: async (request) => {
+          seenRequest = request
+          return successEnvelope(request)
+        },
+      },
+    },
+  })
+
+  assert.equal(result.ok, true)
+  assert.equal(seenRequest.sandbox, 'read-only')
+})
+
 test('runAgent dispatches to an object-shaped adapter when capabilities are satisfied', async () => {
   let seenRequest
   const result = await runAgent({
@@ -420,4 +442,3 @@ test('runAgent does not fall back when disableFallback is true', async () => {
   assert.equal(result.errorCode, ErrorCode.PROCESS_EXIT_NONZERO)
   assert.equal(result.provider, 'primary')
 })
-

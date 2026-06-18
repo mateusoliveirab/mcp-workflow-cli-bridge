@@ -84,6 +84,9 @@ export async function runAgent(input: AgentInput, options: RunAgentOptions = {})
     }
 
     const adapter = resolveAdapterEntry(adapterEntry)
+    if (request.access === 'read-only' && !request.sandbox && adapter.capabilities.sandbox) {
+      request = { ...request, sandbox: 'read-only' }
+    }
 
     // Reject requests the chosen provider can't satisfy (e.g. a schema for a
     // text-only CLI) before dispatch, with a precise UNSUPPORTED_* code.

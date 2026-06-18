@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { execFileSync } from 'node:child_process'
 import { runWorkflow } from '../src/workflows/workflow-executor.ts'
 
 function tempDir() {
@@ -11,6 +12,10 @@ function tempDir() {
 
 function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2))
+}
+
+function gitInit(dir) {
+  execFileSync('git', ['init'], { cwd: dir, stdio: 'ignore' })
 }
 
 test('runWorkflow executes read-files, policy, agent dry-run, and shell dry-run phases', async () => {
@@ -372,6 +377,244 @@ test('runWorkflow forwards timeoutMs to agent phases', async () => {
 
     assert.equal(result.ok, true)
     assert.equal(requests[0].timeoutMs, 12345)
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('runWorkflow blocks dangerous permissions unless explicitly allowed', async () => {
+  const dir = tempDir()
+  try {
+    const workflowPath = path.join(dir, 'workflow.json')
+    writeJson(workflowPath, {
+      name: 'dangerous-permissions-workflow',
+      phases: [
+        {
+          name: 'research',
+          kind: 'agent',
+          provider: 'mock',
+          prompt: 'research only',
+        },
+      ],
+    })
+
+    const result = await runWorkflow({
+      workflowPath,
+      cwd: dir,
+      task: 'research',
+      dangerouslySkipPermissions: true,
+    }, {
+      adapters: {
+        mock: async () => {
+          throw new Error('should not dispatch')
+        },
+      },
+    })
+
+    assert.equal(result.ok, false)
+    assert.match(result.error, /does not set allowDangerousPermissions=true/)
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('runWorkflow forwards dangerous permissions when phase opts in', async () => {
+  const dir = tempDir()
+  let seenRequest
+  try {
+    const workflowPath = path.join(dir, 'workflow.json')
+    writeJson(workflowPath, {
+      name: 'dangerous-permissions-opt-in',
+      phases: [
+        {
+          name: 'apply',
+          kind: 'agent',
+          provider: 'mock',
+          access: 'workspace-write',
+          allowDangerousPermissions: true,
+          prompt: 'apply',
+        },
+      ],
+    })
+
+    const result = await runWorkflow({
+      workflowPath,
+      cwd: dir,
+      task: 'apply',
+      dangerouslySkipPermissions: true,
+    }, {
+      adapters: {
+        mock: async (request) => {
+          seenRequest = request
+          return {
+            ok: true,
+            runId: request.runId,
+            provider: request.provider,
+            phase: request.phase,
+            label: request.label,
+            durationMs: 1,
+            attempts: 1,
+            structured: false,
+            text: 'ok',
+            usage: {},
+            artifacts: [],
+            warnings: [],
+          }
+        },
+      },
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(seenRequest.dangerouslySkipPermissions, true)
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('runWorkflow detects writes from a read-only agent phase in git repos', async () => {
+  const dir = tempDir()
+  const repo = path.join(dir, 'repo')
+  fs.mkdirSync(repo)
+  gitInit(repo)
+  try {
+    const workflowPath = path.join(dir, 'workflow.json')
+    writeJson(workflowPath, {
+      name: 'read-only-guard',
+      phases: [
+        {
+          name: 'research',
+          kind: 'agent',
+          provider: 'mock',
+          prompt: 'research',
+        },
+      ],
+    })
+
+    const result = await runWorkflow({
+      workflowPath,
+      cwd: repo,
+      task: 'research',
+    }, {
+      adapters: {
+        mock: async (request) => {
+          fs.mkdirSync(path.join(repo, 'src'), { recursive: true })
+          fs.writeFileSync(path.join(repo, 'src', 'adapters.ts'), 'changed')
+          return {
+            ok: true,
+            runId: request.runId,
+            provider: request.provider,
+            phase: request.phase,
+            label: request.label,
+            durationMs: 1,
+            attempts: 1,
+            structured: false,
+            text: 'ok',
+            usage: {},
+            artifacts: [],
+            warnings: [],
+          }
+        },
+      },
+    })
+
+    assert.equal(result.ok, false)
+    assert.match(result.error, /read-only phase changed files/)
+    assert.match(result.error, /src\/adapters\.ts/)
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('runWorkflow reports read-only writes even when the agent phase fails', async () => {
+  const dir = tempDir()
+  const repo = path.join(dir, 'repo')
+  fs.mkdirSync(repo)
+  gitInit(repo)
+  try {
+    const workflowPath = path.join(dir, 'workflow.json')
+    writeJson(workflowPath, {
+      name: 'read-only-failed-guard',
+      phases: [
+        {
+          name: 'research',
+          kind: 'agent',
+          provider: 'mock',
+          prompt: 'research',
+        },
+      ],
+    })
+
+    const result = await runWorkflow({
+      workflowPath,
+      cwd: repo,
+      task: 'research',
+    }, {
+      adapters: {
+        mock: async () => {
+          fs.writeFileSync(path.join(repo, 'unexpected.ts'), 'changed')
+          throw new Error('provider failed')
+        },
+      },
+    })
+
+    assert.equal(result.ok, false)
+    assert.match(result.error, /read-only phase changed files/)
+    assert.match(result.error, /unexpected\.ts/)
+    assert.match(result.error, /Original phase error: research failed: UNKNOWN_PROVIDER_ERROR provider failed/)
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('runWorkflow allows workspace writes inside allowedWritePaths', async () => {
+  const dir = tempDir()
+  const repo = path.join(dir, 'repo')
+  fs.mkdirSync(repo)
+  gitInit(repo)
+  try {
+    const workflowPath = path.join(dir, 'workflow.json')
+    writeJson(workflowPath, {
+      name: 'allowed-write-guard',
+      phases: [
+        {
+          name: 'synthesis',
+          kind: 'agent',
+          provider: 'mock',
+          access: 'workspace-write',
+          allowedWritePaths: ['docs/research/**'],
+          prompt: 'write synthesis',
+        },
+      ],
+    })
+
+    const result = await runWorkflow({
+      workflowPath,
+      cwd: repo,
+      task: 'write synthesis',
+    }, {
+      adapters: {
+        mock: async (request) => {
+          fs.mkdirSync(path.join(repo, 'docs', 'research'), { recursive: true })
+          fs.writeFileSync(path.join(repo, 'docs', 'research', 'out.md'), 'ok')
+          return {
+            ok: true,
+            runId: request.runId,
+            provider: request.provider,
+            phase: request.phase,
+            label: request.label,
+            durationMs: 1,
+            attempts: 1,
+            structured: false,
+            text: 'ok',
+            usage: {},
+            artifacts: [],
+            warnings: [],
+          }
+        },
+      },
+    })
+
+    assert.equal(result.ok, true)
   } finally {
     fs.rmSync(dir, { recursive: true, force: true })
   }

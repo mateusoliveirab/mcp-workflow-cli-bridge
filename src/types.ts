@@ -34,6 +34,7 @@ export const AgentInputSchema = z.object({
   addDirs: z.array(z.string()).optional(),
   envAllowlist: z.array(z.string()).optional(),
   disableFallback: z.boolean().optional(),
+  access: z.enum(['read-only', 'workspace-write', 'unrestricted']).optional(),
 })
 
 export type Attachment = z.infer<typeof AttachmentSchema>

@@ -48,7 +48,29 @@ The executor loads `workflowPath`, runs phases in order, records run-state under
 
 `timeoutMs` is optional and is forwarded to each delegated `run_agent` call. It is useful for live validation workflows that exercise multiple real provider CLIs.
 
-`dangerouslySkipPermissions` is optional and requests unattended permission skipping for providers that support it. The CLI exposes this as `--dangerously-skip-permissions`.
+`dangerouslySkipPermissions` is optional and requests unattended permission skipping for providers that support it. The CLI exposes this as `--dangerously-skip-permissions`. A workflow or phase must also set `allowDangerousPermissions: true`; otherwise the executor rejects the phase before dispatching a provider.
+
+## Execution Policy
+
+Workflow and phase objects may declare execution policy fields:
+
+```json
+{
+  "access": "read-only",
+  "allowedWritePaths": ["docs/research/**"],
+  "allowDangerousPermissions": false
+}
+```
+
+`access` may be:
+
+- `read-only`: no file changes are allowed. This is the default for `agent` phases.
+- `workspace-write`: file changes are allowed. If `allowedWritePaths` is present, writes outside those repo-relative glob patterns fail the phase.
+- `unrestricted`: the executor does not audit file changes for that phase.
+
+Top-level policy applies to all phases and phase-level policy overrides it. The executor snapshots Git status before and after audited phases. It does not automatically revert files; on violation it fails the phase and reports the changed paths so the caller can decide how to recover without clobbering unrelated local work.
+
+For read-only agent phases, providers that support sandboxing receive a read-only sandbox request automatically. Providers without sandbox support are still audited by the Git snapshot guard.
 
 ## Workflow File Shape
 

@@ -1,4 +1,5 @@
-import { execSync } from 'node:child_process'
+import { execFileSync, execSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { z } from 'zod'
@@ -59,6 +60,9 @@ const PhaseSchema = z.object({
   files: z.array(z.string()).optional(),
   maxBytes: z.number().int().positive().optional(),
   skipPermissions: z.boolean().optional(),
+  access: z.enum(['read-only', 'workspace-write', 'unrestricted']).optional(),
+  allowedWritePaths: z.array(z.string()).optional(),
+  allowDangerousPermissions: z.boolean().optional(),
   skipIf: ConditionSchema.optional(),
   assertions: z.array(AssertionSchema).optional(),
 })
@@ -67,6 +71,9 @@ const WorkflowFileSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   contractFormat: z.enum(['json', 'toon']).optional(),
+  access: z.enum(['read-only', 'workspace-write', 'unrestricted']).optional(),
+  allowedWritePaths: z.array(z.string()).optional(),
+  allowDangerousPermissions: z.boolean().optional(),
   inputDefaults: z.record(z.string(), z.unknown()).default({}),
   phases: z.array(PhaseSchema),
 })
@@ -74,6 +81,17 @@ const WorkflowFileSchema = z.object({
 export type RunWorkflowInput = z.infer<typeof RunWorkflowInputSchema>
 type WorkflowFile = z.infer<typeof WorkflowFileSchema>
 type WorkflowPhase = z.infer<typeof PhaseSchema>
+type AccessMode = 'read-only' | 'workspace-write' | 'unrestricted'
+
+interface ExecutionPolicy {
+  access: AccessMode
+  allowedWritePaths: string[]
+  allowDangerousPermissions: boolean
+}
+
+interface MutationSnapshot {
+  files: Map<string, string>
+}
 
 export interface WorkflowPhaseResult {
   name: string
@@ -132,11 +150,16 @@ export async function runWorkflow(
       const providerLabel = provider || 'local'
       const startedAt = Date.now()
       phaseStart(runId, phaseName, index, providerLabel)
+      const policy = resolveExecutionPolicy(workflow, phase)
+      let before: MutationSnapshot | null = null
 
       try {
+        assertDangerousPermissionsAllowed(phase, input, policy)
+        before = beginMutationSnapshot(input.cwd, policy)
         const text = await executePhase(phase, {
           input,
           workflow,
+          policy,
           contractFormat,
           inputs,
           results,
@@ -144,6 +167,7 @@ export async function runWorkflow(
           config,
           adapters: options.adapters,
         })
+        assertMutationPolicy(input.cwd, policy, before)
         const durationMs = Date.now() - startedAt
         results[phaseName] = text
         phaseEnd(runId, phaseName, true, durationMs)
@@ -157,7 +181,12 @@ export async function runWorkflow(
         })
       } catch (error) {
         const durationMs = Date.now() - startedAt
-        const message = (error as Error).message
+        let message = (error as Error).message
+        try {
+          assertMutationPolicy(input.cwd, policy, before)
+        } catch (policyError) {
+          message = `${(policyError as Error).message}\nOriginal phase error: ${message}`
+        }
         phaseEnd(runId, phaseName, false, durationMs)
         phaseResults.push({
           name: phaseName,
@@ -220,6 +249,7 @@ async function executePhase(
   context: {
     input: RunWorkflowInput
     workflow: WorkflowFile
+    policy: ExecutionPolicy
     contractFormat: ContractFormat
     inputs: Record<string, unknown>
     results: Record<string, string>
@@ -325,6 +355,7 @@ async function agentPhase(
   context: {
     input: RunWorkflowInput
     workflow: WorkflowFile
+    policy: ExecutionPolicy
     contractFormat: ContractFormat
     inputs: Record<string, unknown>
     results: Record<string, string>
@@ -350,6 +381,7 @@ async function agentPhase(
     provider: phase.provider || context.provider || (context.input.dryRun ? 'agy' : undefined),
     agentType: phase.agentType,
     schema: phase.schema,
+    access: context.policy.access,
     timeoutMs: context.input.timeoutMs,
     dryRun: context.input.dryRun,
     mockText: phase.mockText || `[dry-run ${phase.name}]`,
@@ -373,6 +405,133 @@ async function agentPhase(
     return formatContractValue(result.data, context.contractFormat)
   }
   return result.text
+}
+
+function resolveExecutionPolicy(workflow: WorkflowFile, phase: WorkflowPhase): ExecutionPolicy {
+  return {
+    access: phase.access || workflow.access || (phase.kind === 'agent' ? 'read-only' : 'workspace-write'),
+    allowedWritePaths: phase.allowedWritePaths || workflow.allowedWritePaths || [],
+    allowDangerousPermissions: Boolean(phase.allowDangerousPermissions || workflow.allowDangerousPermissions),
+  }
+}
+
+function assertDangerousPermissionsAllowed(
+  phase: WorkflowPhase,
+  input: RunWorkflowInput,
+  policy: ExecutionPolicy,
+): void {
+  const requested = Boolean(phase.skipPermissions || input.dangerouslySkipPermissions)
+  if (!requested || policy.allowDangerousPermissions) return
+
+  throw new Error(
+    `Phase '${phase.name}' requested dangerouslySkipPermissions, but this phase/workflow does not set allowDangerousPermissions=true.`
+  )
+}
+
+function beginMutationSnapshot(cwd: string, policy: ExecutionPolicy): MutationSnapshot | null {
+  if (policy.access === 'unrestricted') return null
+  if (!isGitRepository(cwd)) return null
+  return { files: snapshotChangedFiles(cwd) }
+}
+
+function assertMutationPolicy(cwd: string, policy: ExecutionPolicy, before: MutationSnapshot | null): void {
+  if (!before) return
+
+  const after = snapshotChangedFiles(cwd)
+  const changed = changedSince(before.files, after)
+  if (!changed.length) return
+
+  if (policy.access === 'read-only') {
+    throw new Error(`Execution policy violation: read-only phase changed files: ${changed.join(', ')}`)
+  }
+
+  if (policy.allowedWritePaths.length) {
+    const disallowed = changed.filter(file => !matchesAnyAllowedPath(file, policy.allowedWritePaths))
+    if (disallowed.length) {
+      throw new Error(
+        `Execution policy violation: phase changed files outside allowedWritePaths: ${disallowed.join(', ')}`
+      )
+    }
+  }
+}
+
+function isGitRepository(cwd: string): boolean {
+  try {
+    execFileSync('git', ['-C', cwd, 'rev-parse', '--is-inside-work-tree'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function snapshotChangedFiles(cwd: string): Map<string, string> {
+  const files = listGitStatusPaths(cwd)
+  const snapshot = new Map<string, string>()
+  for (const file of files) {
+    snapshot.set(file, fileFingerprint(cwd, file))
+  }
+  return snapshot
+}
+
+function listGitStatusPaths(cwd: string): string[] {
+  const output = execFileSync('git', ['-C', cwd, 'status', '--porcelain', '--untracked-files=all'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  })
+  const files = new Set<string>()
+  for (const line of output.split('\n')) {
+    if (!line.trim()) continue
+    const rawPath = line.slice(3)
+    const renamedPath = rawPath.includes(' -> ') ? rawPath.split(' -> ').pop()! : rawPath
+    files.add(normalizeRepoPath(renamedPath))
+  }
+  return Array.from(files).sort()
+}
+
+function fileFingerprint(cwd: string, file: string): string {
+  const filePath = path.join(cwd, file)
+  if (!fs.existsSync(filePath)) return '<deleted>'
+  const stat = fs.statSync(filePath)
+  if (!stat.isFile()) return `<${stat.isDirectory() ? 'dir' : 'special'}>`
+  return createHash('sha256').update(fs.readFileSync(filePath)).digest('hex')
+}
+
+function changedSince(before: Map<string, string>, after: Map<string, string>): string[] {
+  const files = new Set([...before.keys(), ...after.keys()])
+  return Array.from(files)
+    .filter(file => before.get(file) !== after.get(file))
+    .sort()
+}
+
+function matchesAnyAllowedPath(file: string, allowedPaths: string[]): boolean {
+  return allowedPaths.some(pattern => globToRegExp(pattern).test(normalizeRepoPath(file)))
+}
+
+function globToRegExp(pattern: string): RegExp {
+  const normalized = normalizeRepoPath(pattern)
+  let source = ''
+  for (let index = 0; index < normalized.length; index++) {
+    const char = normalized[index]!
+    if (char === '*') {
+      if (normalized[index + 1] === '*') {
+        source += '.*'
+        index += 1
+      } else {
+        source += '[^/]*'
+      }
+      continue
+    }
+    source += escapeRegExp(char)
+  }
+  return new RegExp(`^${source}$`)
+}
+
+function escapeRegExp(char: string): string {
+  return /[\\^$+?.()|[\]{}]/.test(char) ? `\\${char}` : char
+}
+
+function normalizeRepoPath(file: string): string {
+  return file.replace(/\\/g, '/').replace(/^\.\/+/, '')
 }
 
 function resolvePhaseProvider(phase: WorkflowPhase, adapters?: Record<string, AdapterEntry>): string | undefined {
